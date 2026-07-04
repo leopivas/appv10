@@ -1,0 +1,128 @@
+<analysis>**original_problem_statement**: 
+Preciso arrumar alguns erros, deixar mais arrumado e fácil de administrar o sistema de ferramentas para streamers de live no tiktok que eu desenvolvi, e também acrescentar mais funções nele. Especificamente, o usuário solicitou uma interface web para gerenciar o funcionamento dos servidores e ligar/desligar emuladores. 
+PRODUCT REQUIREMENTS: 
+1. Migrar projeto para a plataforma.
+2. Painel admin master para gerenciar emuladores/servidores de VPS externos.
+3. Arrumar erros de funcionamento nos overlays e leaderboards.
+4. Adicionar funções presentes em sistemas concorrentes (bettertok.app, tikscan.live) como agendamento, alertas, multi-conta, relatórios.
+
+**User's preferred language**: Portuguese (You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only)
+
+**what currently exists?** 
+A TypeScript monorepo () using  with a React/Vite frontend (), an Express Node.js backend (), and PostgreSQL database mapped via Drizzle ORM. The environment is successfully configured: the  acts as a proxy forwarding  to the Node.js backend, and the Vite frontend is served properly. The Servers Manager feature is fully built and functioning, allowing users to create servers, link an external Python agent, and manage emulator processes. 
+
+**Last working item**: 
+    - Last item agent was working: Completed the full end-to-end setup and implementation of the Servers Manager feature, including DB schemas, backend routes, frontend UI, and the Python agent script () meant to be run on the user's external VPS.
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y
+    - Which testing method agent to use? Frontend testing agent / backend testing agent / both
+    - User Testing Done: N
+
+**All Pending/In progress Issue list**:
+  Issue 1: Overlays and Leaderboards are malfunctioning (P0)
+  
+  Issues Detail:
+  - Issue 1: 
+     - Attempted fixes: None yet.
+     - Next debug checklist: Ask the user for specific error reproductions, then inspect the overlay and leaderboard components in  and their respective backend endpoints.
+     - Why fix this issue and what will be achieved with the fix? Core features of the app are currently broken as stated by the user. Fixing them restores primary product value.
+     - Status: NOT STARTED
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? both
+     - Blocked on other issue: NA
+
+**In progress Task List**:
+  None. The initial setup and specific Servers Manager feature were successfully finished.
+
+**Upcoming and Future Tasks**
+  Upcoming Tasks:
+  - Task 1 (P0): Investigate and fix bugs related to overlays and leaderboards as mentioned by the user.
+  - Task 2 (P1): Implement competitive features mentioned by the user from references (bettertok.app / tikscan.live): scheduling, alerts, reporting, multi-account handling.
+  
+**Completed work in this session**
+- Project Environment Setup & Migration to  (DONE)
+- PostgreSQL Setup and DB Seeding with Drizzle ORM (DONE)
+- Server and Emulator Management feature full stack implementation:
+  -  (DONE)
+  -  (DONE)
+  -  (DONE)
+  - App layout sidebar navigation update (DONE)
+- Python Agent script generation for user's VPS at  (DONE)
+
+**Earlier issues found/mentioned but not fixed**
+   Issue 1:
+   - Debug checklist: User reported algumas funções do sistema nao esta como eus gostaria, overlays, leaderboards e etc. Next agent needs to replicate and fix these.
+   - Why to solve this issue and what will be achieved with this? Essential app features for TikTok streamers.
+   - Should Test frontend/backend/both after fix: both
+   - Is recurring issue? N
+
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: None (First Session)
+  - Recurrence count: 0
+  - Status: NOT STARTED
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+React.js, Vite, TypeScript, Express.js (Node Backend), PostgreSQL, Drizzle ORM, pnpm workspaces, Tailwind CSS, shadcn/ui. *Note:  is exclusively a FastAPI proxy forwarding requests to the Node Express server. Do not write business logic in Python here.*
+
+**key DB schema**
+  - users: {{id, email, passwordHash, roleId, isAdmin}}
+  - servers: {{id, name, description, hostname, agentKey}}
+  - server_emulators: {{id, serverId, name, processCmd, status}}
+  - server_commands: {{id, serverId, type, targetId, status}}
+
+**changes in tech stack**
+  - Replaced MongoDB with PostgreSQL (Port 5432) using Drizzle ORM based on the user's existing project architecture. 
+
+**All files of reference** 
+  -  (DB Schema for servers)
+  -  (Backend Controller)
+  -  (Frontend View)
+  -  (Downloadable script for the external VPS)
+
+**Areas that need refactoring**: 
+None identified in the recently built features, though the existing overlay/leaderboard codebase needs to be explored for reported bugs.
+
+**key api endpoints**
+  - 
+  -  (GET/POST)
+  -  (POST)
+  -  (POST)
+  -  (POST - used by the Python external VPS script)
+
+**Critical Info for New Agent**
+  - **IMPORTANT:** The core backend is an Express server located in . The  is ONLY a proxy forwarding  requests to the internal Express server running on port . 
+  - The frontend is located in  and uses Vite. It is triggered by the yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. script mapping in .
+  - Database is strictly **PostgreSQL** running locally on port 5432, managed by Drizzle ORM. Run DB commands using  inside .
+  - The previous agent did **not** use the  explicitly but relied on manual curl E2E scripts and screenshots, which were successful. When making core logic fixes to the broken overlays, you SHOULD utilize the testing subagents.
+
+**documents and test reports created in this job**
+  - /app/memory/PRD.md
+  - /app/memory/test_credentials.md
+
+**Last 10 User Messages and any pending HUMAN messages** 
+ - User: Credits Recharged. Please Continue. -> Agent acknowledged and finished up UI tweaks. (COMPLETED)
+ - User: ta dificil ai? -> Agent explained Postgres boot delay and fixed DB migrations. (COMPLETED)
+ - User: Provided configuration and requirement answers via . (COMPLETED)
+
+**Project Health Check:**
+Healthy. Both Vite and Express servers are running perfectly with the Postgres database synced.
+
+**3rd Party Integrations**
+  - Stripe (Payments) — present in code, requires User API Key if billing features are touched.
+  - TikTok API connection via websocket (Proxy in codebase).
+
+**Testing status**
+  - Testing agent used after significant changes: NO (Manual Bash E2E & Screenshots were used extensively instead)
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None explicitly.
+  - Known regressions: None known.
+
+**Credentials to test flow:**
+Available in . (Default admin: )
+
+**What agent forgot to execute**
+The agent did not yet begin debugging the overlays and leaderboards issues that the user explicitly mentioned in the  responses. The agent also omitted the  call before finishing the task, relying entirely on curl/screenshot manual tests.</analysis>
