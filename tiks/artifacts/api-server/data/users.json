@@ -1,0 +1,67 @@
+{
+  "users": [
+    {
+      "id": "4hamdasde6bmqzcu8lc",
+      "email": "admin@creatools.co",
+      "name": "Admin",
+      "passwordHash": "$2b$10$SCVAC5U1ON.m/QmfFbO5eurg0hSIdrvpUMcmX5/ovJXaVigDsMS6y",
+      "createdAt": "2026-06-29T15:10:33.216Z",
+      "plan": "free",
+      "isAdmin": true
+    },
+    {
+      "id": "1tq1izorb9nmqzd4evq",
+      "email": "piva@piva.lol",
+      "name": "piva",
+      "passwordHash": "$2b$10$pXEkUFQBrrv/gD6s0pDGMetABVLVZvMx94C0O9g3ofY2hdP3QtbNO",
+      "createdAt": "2026-06-29T15:18:27.926Z",
+      "plan": "pro",
+      "isAdmin": true,
+      "roleId": "role_aawmmmwp8ypmqzkkut2",
+      "lastLoginAt": "2026-07-01T00:29:02.847Z",
+      "tiktokUsername": "seupiva"
+    },
+    {
+      "id": "9quluplzptmqzdlzgm",
+      "email": "teste@1.com",
+      "name": "teste",
+      "passwordHash": "$2b$10$SkgPpD/bVQlJRq3GhYPL/uaOEaIuh6dG7Nfod9f7LWBDd0TnRBXRq",
+      "createdAt": "2026-06-29T15:32:07.750Z",
+      "plan": "free",
+      "isAdmin": false,
+      "lastLoginAt": "2026-07-01T00:17:12.192Z"
+    },
+    {
+      "id": "0c889q458eomqzf7sfc",
+      "email": "teste@2.com",
+      "name": "testando 2",
+      "passwordHash": "$2b$10$a2UCZilqpynZwmEefK6nQuzApw5eqxT3PKg01np6OU2sM6dpTtrEu",
+      "createdAt": "2026-06-29T16:17:04.680Z",
+      "plan": "free",
+      "isAdmin": false
+    },
+    {
+      "id": "o2c11e77v7mqzl0brk",
+      "email": "ttt@1.com",
+      "name": "teste3",
+      "passwordHash": "$2b$10$3EMCTiUTdoJVYRxJ7qF/UO/QZDDyMakE3ga0lY.HoZXAlygy.3paa",
+      "createdAt": "2026-06-29T18:59:14.192Z",
+      "plan": "free",
+      "isAdmin": false
+    },
+    {
+      "id": "lh65qbyxt8mr1g7wer",
+      "email": "teste@4.com",
+      "name": "testando ap",
+      "passwordHash": "$2b$10$KkPC89pQrL.zlRWeBACrFuR4WYUB2.lTstrvQUxiamKC.Xo9WuBHW",
+      "createdAt": "2026-07-01T02:20:41.810Z",
+      "lastLoginAt": "2026-07-01T02:20:41.810Z",
+      "plan": "free",
+      "isAdmin": false,
+      "tiktokUsername": "tttttttslmlsds",
+      "tiktokVerified": true,
+      "tiktokLinkedAt": "2026-07-01T02:20:41.810Z",
+      "roleId": "role_aawmmmwp8ypmqzkkut2"
+    }
+  ]
+}

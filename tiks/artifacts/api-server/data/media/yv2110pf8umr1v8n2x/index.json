@@ -1,0 +1,24 @@
+[
+  {
+    "id": "4941d2c2-bcc1-4acb-90c5-6105c283f52d",
+    "filename": "7a9ce365-3549-48c7-b6a5-441b287d9ab6.jpg",
+    "originalName": "legit.jpg",
+    "category": "Geral",
+    "size": 22,
+    "mimeType": "image/jpeg",
+    "width": null,
+    "height": null,
+    "createdAt": "2026-07-01T09:21:11.246Z"
+  },
+  {
+    "id": "75c439be-e5c0-4cfa-8986-51d9f4e95db7",
+    "filename": "a44ddb0a-e632-4f00-b753-b671cd375d07.png",
+    "originalName": "legit.png",
+    "category": "Banners",
+    "size": 533,
+    "mimeType": "image/png",
+    "width": 200,
+    "height": 150,
+    "createdAt": "2026-07-01T09:21:10.985Z"
+  }
+]

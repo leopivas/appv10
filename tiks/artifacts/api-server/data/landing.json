@@ -1,0 +1,139 @@
+{
+  "enabled": true,
+  "hero": {
+    "headline": "A plataforma completa para streamers do TikTok LIVE",
+    "subheadline": "Overlays, rankings, alertas, análises e muito mais — tudo que você precisa para profissionalizar sua live, em um só lugar.",
+    "ctaLabel": "Começar Grátis",
+    "backgroundGradient": "from-violet-900/40 via-purple-900/20 to-cyan-900/20"
+  },
+  "features": [
+    {
+      "id": "feat-overlays",
+      "title": "Overlay Studio",
+      "description": "Overlays profissionais para OBS e TikTok Studio: alertas de gift, top gifters, metas de live, chat animado, combo de likes e muito mais.",
+      "icon": "Monitor",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 0
+    },
+    {
+      "id": "feat-monitor",
+      "title": "Monitor em Tempo Real",
+      "description": "Conecte via WebSocket e acompanhe chat, gifts, likes, entradas e seguidas ao vivo com latência de milissegundos.",
+      "icon": "Activity",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 1
+    },
+    {
+      "id": "feat-scoreboards",
+      "title": "Scoreboards & Rankings",
+      "description": "Placares interativos para suas lives: gifters do dia, seguidores novos, leaderboard de engajamento e muito mais.",
+      "icon": "Trophy",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 2
+    },
+    {
+      "id": "feat-analytics",
+      "title": "Live Analytics",
+      "description": "Métricas detalhadas de cada live: pico de viewers, gifts recebidos, novos seguidores, engajamento e histórico.",
+      "icon": "BarChart3",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 3
+    },
+    {
+      "id": "feat-minigames",
+      "title": "Minigames Interativos",
+      "description": "Jogos ao vivo para engajar seu público: votações, roletas de gifts, desafios e dinâmicas exclusivas.",
+      "icon": "Gamepad2",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 4
+    },
+    {
+      "id": "feat-webhooks",
+      "title": "Webhooks & Integrações",
+      "description": "Receba eventos da sua live em qualquer sistema externo via webhook: gift, seguida, like, entrada e mais.",
+      "icon": "Webhook",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 5
+    },
+    {
+      "id": "feat-watchlist",
+      "title": "Watchlist & Alertas",
+      "description": "Acompanhe quais criadores da sua lista estão ao vivo agora e receba notificações em tempo real.",
+      "icon": "Bell",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 6
+    },
+    {
+      "id": "feat-gifters",
+      "title": "Gifters Leaderboard",
+      "description": "Ranking de quem mais enviou gifts na sua live e no geral — reconheça e fidelize seus maiores apoiadores.",
+      "icon": "Diamond",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 7
+    },
+    {
+      "id": "feat-api",
+      "title": "API & JWT",
+      "description": "Acesse dados da sua live via API segura com tokens JWT. Integre com qualquer sistema ou ferramenta.",
+      "icon": "Code2",
+      "imageUrl": "",
+      "demoUrl": "",
+      "order": 8
+    }
+  ],
+  "partners": [
+    {
+      "id": "472d30a2-49ee-47c2-ada0-5c089fa6be22",
+      "tiktokHandle": "erosprado",
+      "displayName": "Eros Prado",
+      "avatarUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/590158d942cb58e374d61158ddfb69a9~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=ea0699ce&x-expires=1783036800&x-signature=PAimxXBafxWod3w6H5%2FkbpQ4m00%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "followers": 2500000,
+      "addedAt": "2026-07-01T00:25:16.830Z"
+    },
+    {
+      "id": "7833d690-ed8e-4cb0-bf57-e44209bab6f5",
+      "tiktokHandle": "raq.sousaa",
+      "displayName": "Ana Cherry 🍒",
+      "avatarUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/83d2553aa06457d9a4b756e3e1b959e4~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=1e7080ad&x-expires=1783036800&x-signature=iU2s%2ByAex%2B8mzohJU%2BezeN3HP4M%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "followers": 174300,
+      "addedAt": "2026-07-01T00:43:13.831Z"
+    },
+    {
+      "id": "13ac953b-e0c8-4e74-a91f-bdf79bf42ffc",
+      "tiktokHandle": "__ribeiroisa_",
+      "displayName": "Ribeiro ⭐️",
+      "avatarUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/dfdedd95d0c1c821063c1eb7a8233e0d~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=670d959f&x-expires=1783036800&x-signature=XtE7TD0XGw88hGqfYBZC6mPpo9I%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "followers": 9262,
+      "addedAt": "2026-07-01T00:45:50.742Z"
+    },
+    {
+      "id": "655fdd98-500b-4edb-83d5-fc8a51b51283",
+      "tiktokHandle": "seupiva",
+      "displayName": "piva",
+      "avatarUrl": "https://p16-common-sign.tiktokcdn-us.com/tos-alisg-avt-0068/33f3a374f6c029ce991665f56fbbd300~tplv-tiktokx-cropcenter:1080:1080.jpeg?dr=9640&refresh_token=5e786557&x-expires=1783051200&x-signature=51FqWspL%2BwOu7yyyD8lFRLUuOag%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5",
+      "followers": 843,
+      "addedAt": "2026-07-01T04:46:17.551Z"
+    }
+  ],
+  "plans": {
+    "visiblePlanIds": [
+      "free",
+      "basic",
+      "pro"
+    ],
+    "recommendedPlanId": "basic"
+  },
+  "cta": {
+    "text": "Comece a profissionalizar sua live hoje",
+    "subtext": "Crie sua conta grátis e acesse overlays, analytics e ferramentas profissionais agora mesmo.",
+    "buttonLabel": "Criar Conta Grátis"
+  }
+}

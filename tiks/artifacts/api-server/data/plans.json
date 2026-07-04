@@ -1,0 +1,129 @@
+{
+  "plans": [
+    {
+      "id": "free",
+      "name": "Iniciante",
+      "description": "Gratuito para exploração",
+      "price": 0,
+      "currency": "USD",
+      "billingPeriod": "free",
+      "permissions": [
+        "view_dashboard",
+        "view_monitor",
+        "use_jwt",
+        "view_live_analytics"
+      ],
+      "tiktokUsernameChangesPerWeek": 1,
+      "maxConcurrentWs": 2,
+      "maxApiCallsPerWindow": 2,
+      "features": [
+        "Hub",
+        "Monitor (básico)"
+      ],
+      "color": "gray",
+      "order": 0,
+      "isActive": true,
+      "maxLiveHoursPerMonth": -1,
+      "maxLiveAnalyses": -1,
+      "maxWebhooks": 0
+    },
+    {
+      "id": "basic",
+      "name": "Básico",
+      "description": "Para criadores que precisam de mais ferramentas",
+      "price": 1999,
+      "currency": "USD",
+      "billingPeriod": "monthly",
+      "permissions": [
+        "view_dashboard",
+        "view_monitor",
+        "view_bulk_check",
+        "view_gifters",
+        "view_country_leaderboard",
+        "view_gift_gallery",
+        "use_watchlist",
+        "view_webhooks",
+        "view_live_analytics",
+        "view_live_captions",
+        "view_gaming_leaderboard",
+        "use_jwt"
+      ],
+      "tiktokUsernameChangesPerWeek": 1,
+      "maxConcurrentWs": 5,
+      "maxApiCallsPerWindow": 100,
+      "features": [
+        "Tudo do Iniciante",
+        "Bulk Check",
+        "Gifters Leaderboard",
+        "Watchlist",
+        "Webhooks",
+        "Live Analytics"
+      ],
+      "color": "cyan",
+      "order": 1,
+      "isActive": true,
+      "maxLiveHoursPerMonth": -1,
+      "maxLiveAnalyses": -1,
+      "maxWebhooks": 0
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "description": "Acesso completo a todas as funcionalidades",
+      "price": 4999,
+      "currency": "USD",
+      "billingPeriod": "monthly",
+      "permissions": [
+        "view_dashboard",
+        "view_monitor",
+        "view_bulk_check",
+        "view_gaming_leaderboard",
+        "view_gifters",
+        "view_webhooks",
+        "view_live_captions",
+        "view_live_analytics",
+        "view_country_leaderboard",
+        "view_gift_gallery",
+        "use_watchlist",
+        "use_jwt",
+        "change_tiktok_username"
+      ],
+      "tiktokUsernameChangesPerWeek": -1,
+      "maxConcurrentWs": 10,
+      "maxApiCallsPerWindow": 500,
+      "features": [
+        "Tudo do Basic+",
+        "Gaming Leaderboard",
+        "Webhooks",
+        "Live Captions",
+        "Live Analytics",
+        "JWT/WebSocket"
+      ],
+      "color": "violet",
+      "order": 2,
+      "isActive": true,
+      "maxLiveHoursPerMonth": -1,
+      "maxLiveAnalyses": -1,
+      "maxWebhooks": 0
+    },
+    {
+      "id": "influ",
+      "name": "Influenciadores",
+      "description": "",
+      "price": 0,
+      "currency": "BRL",
+      "billingPeriod": "monthly",
+      "permissions": [],
+      "tiktokUsernameChangesPerWeek": 1,
+      "maxConcurrentWs": 1,
+      "maxApiCallsPerWindow": 50,
+      "maxLiveHoursPerMonth": 10,
+      "maxLiveAnalyses": 50,
+      "maxWebhooks": 0,
+      "features": [],
+      "color": "gray",
+      "order": 3,
+      "isActive": false
+    }
+  ]
+}

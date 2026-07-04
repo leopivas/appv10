@@ -1,0 +1,2066 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Creatools - TikTok LIVE monitoring API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: tiktok
+    description: TikTok LIVE operations
+  - name: config
+    description: Configuration operations
+  - name: events
+    description: Automation rules (Events Engine)
+  - name: media
+    description: Media library (file upload, listing, storage)
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /tiktok/top-channels:
+    get:
+      operationId: getTopChannels
+      tags: [tiktok]
+      summary: Get top live channels
+      description: Returns currently live TikTok channels (no API key required). displayName mapped to nickname.
+      responses:
+        "200":
+          description: List of live channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LiveChannel"
+
+  /tiktok/live-status:
+    get:
+      operationId: getLiveStatus
+      tags: [tiktok]
+      summary: Check if user is live
+      description: Calls tik.tools /webcast/live_status with unique_id param.
+      parameters:
+        - name: uniqueId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: TikTok username (without @)
+      responses:
+        "200":
+          description: Live status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveStatus"
+
+  /tiktok/check-alive:
+    get:
+      operationId: checkAlive
+      tags: [tiktok]
+      summary: Check if one or more users/rooms are live
+      description: Uses /webcast/check_alive. Pass unique_id for a single user or room_ids (comma-separated) for multiple rooms.
+      parameters:
+        - name: unique_id
+          in: query
+          schema:
+            type: string
+        - name: room_ids
+          in: query
+          schema:
+            type: string
+          description: Comma-separated room IDs
+      responses:
+        "200":
+          description: Alive check results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckAliveData"
+
+  /tiktok/live-connect:
+    get:
+      operationId: liveConnect
+      tags: [tiktok]
+      summary: Bundled JWT + stream URLs in one call
+      description: Returns a scoped JWT and stream video URLs (HLS/FLV) in a single request. Ideal for frontend apps that open a WebSocket and play video simultaneously.
+      parameters:
+        - name: uniqueId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: JWT token + stream info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveConnectData"
+
+  /tiktok/jwt:
+    post:
+      operationId: mintJwt
+      tags: [tiktok]
+      summary: Mint JWT for WebSocket
+      description: Mints a short-lived JWT for wss://api.tik.tools WebSocket connections.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JwtRequest"
+      responses:
+        "200":
+          description: JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtResponse"
+
+  /tiktok/room-info:
+    post:
+      operationId: getRoomInfo
+      tags: [tiktok]
+      summary: Get room information
+      description: If only uniqueId is provided, backend resolves room_id via live_status first, then calls room_info with room_id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInfoRequest"
+      responses:
+        "200":
+          description: Room info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomInfo"
+
+  /tiktok/webcast-fetch:
+    post:
+      operationId: webcastFetch
+      tags: [tiktok]
+      summary: HTTP long-polling alternative to WebSocket
+      description: Fetches live stream events via HTTP. Use when WebSocket is not possible (serverless, HTTP-only). Returns the same events as WebSocket with a cursor for pagination.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebcastFetchRequest"
+      responses:
+        "200":
+          description: Events batch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebcastFetchData"
+
+  /tiktok/bulk-check:
+    post:
+      operationId: bulkLiveCheck
+      tags: [tiktok]
+      summary: Check multiple users live status
+      description: Uses tik.tools bulk endpoint (Basic+ tier). On Sandbox, falls back to parallel individual live_status calls automatically.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkCheckRequest"
+      responses:
+        "200":
+          description: Bulk live check results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BulkCheckResult"
+
+  /tiktok/rate-limits:
+    get:
+      operationId: getRateLimits
+      tags: [tiktok]
+      summary: Get API rate limits
+      responses:
+        "200":
+          description: Rate limit info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimits"
+
+  /tiktok/gift-catalog:
+    get:
+      operationId: getGiftCatalog
+      tags: [tiktok]
+      summary: Get gift catalog
+      description: Returns the list of known TikTok gifts with diamond costs and icons. Available on all tiers.
+      responses:
+        "200":
+          description: Gift catalog
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GiftItem"
+
+  /tiktok/user-profile:
+    get:
+      operationId: getUserProfile
+      tags: [tiktok]
+      summary: Get user profile
+      description: Returns TikTok user profile data. Requires Pro tier or above.
+      parameters:
+        - name: uniqueId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: TikTok username (without @)
+      responses:
+        "200":
+          description: User profile or tier error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /tiktok/sign-url:
+    post:
+      operationId: signUrl
+      tags: [tiktok]
+      summary: Sign a TikTok webcast URL
+      description: Adds X-Bogus and X-Gnarly anti-automation signatures required for direct TikTok API access.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUrlRequest"
+      responses:
+        "200":
+          description: Signed URL with required headers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignedUrlData"
+        "402":
+          description: Tier requirement not met
+
+  /tiktok/ranklist/gaming:
+    get:
+      operationId: getGamingRanklist
+      tags: [tiktok]
+      summary: TikTok LIVE Gaming leaderboard per region
+      description: Top 99 gaming creators overall + 3 game-specific boards. Global Agency unmasked; others get a 3-entry preview.
+      parameters:
+        - name: region
+          in: query
+          schema:
+            type: string
+          description: Region code (e.g. US%2B, BR, JP). Defaults to US+.
+      responses:
+        "200":
+          description: Gaming ranklist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/ranklist/gaming-movers:
+    get:
+      operationId: getGamingMovers
+      tags: [tiktok]
+      summary: Gaming creators who moved in/out of Top 99
+      description: Every creator who held a Top 99 spot during the current rank-day. Global Agency tier unmasked.
+      parameters:
+        - name: region
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Gaming movers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/ranklist/region-movers:
+    get:
+      operationId: getRegionMovers
+      tags: [tiktok]
+      summary: Creators who moved in/out of the regional leaderboard
+      description: Every creator who held a regional board spot during the current rank-day. Global Agency tier unmasked.
+      parameters:
+        - name: region
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Region movers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/ranklist/regional:
+    post:
+      operationId: getRegionalRanklist
+      tags: [tiktok]
+      summary: Regional LIVE leaderboard (daily, hourly, popular, league) — PRO+
+      description: Sign-and-return pattern. Returns a signed_url you fetch with your session cookie from your IP. Pro+ tier required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegionalRanklistRequest"
+      responses:
+        "200":
+          description: Signed URL to fetch from client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+        "402":
+          description: Tier requirement not met
+
+  /tiktok/leaderboard/leagues:
+    get:
+      operationId: getLeagueBrackets
+      tags: [tiktok]
+      summary: All 18 league brackets for a region
+      description: Returns every active class (Diamond 2000 down to Bronze 100) with up to 99 entries each.
+      parameters:
+        - name: region
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Region code or country code (e.g. KR, IT, GB)
+      responses:
+        "200":
+          description: All league brackets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/leaderboard/league:
+    get:
+      operationId: getLeagueBracket
+      tags: [tiktok]
+      summary: Single league bracket entries
+      description: Returns one bracket (class_type) within a region.
+      parameters:
+        - name: region
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: class
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "Class type: 100, 200, 300, ..., 2000"
+      responses:
+        "200":
+          description: Single league bracket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/live-counts:
+    get:
+      operationId: getLiveCounts
+      tags: [tiktok]
+      summary: Global + per-region live creator counts
+      description: Aggregate counts of unique live creators per region. No per-creator identifiers. Refreshed every 30s.
+      responses:
+        "200":
+          description: Live counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveCountsResponse"
+
+  /tiktok/leaderboards/country/{slug}:
+    get:
+      operationId: getCountryLeaderboard
+      tags: [tiktok]
+      summary: Real-time creator leaderboard for a country or region
+      description: Returns ranked entries with diamonds, live status, room IDs and 7-90 day rank history. Pro+ unmasks names.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Country slug (e.g. greece) or region slug (e.g. balkans)
+      responses:
+        "200":
+          description: Country leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/leaderboards/leagues/{region}:
+    get:
+      operationId: getLeaderboardLeagues
+      tags: [tiktok]
+      summary: Get available leagues for a region (Ultra+ tier)
+      description: Returns available league classes for a given region code (e.g. BK, TW, US+).
+      parameters:
+        - name: region
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Region code (e.g. BK, TW, US+, CA)
+      responses:
+        "200":
+          description: League list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardLeagues"
+        "402":
+          description: Tier requirement not met
+
+  /tiktok/leaderboards/league/{region}/{classType}:
+    get:
+      operationId: getLeaderboardLeague
+      tags: [tiktok]
+      summary: Get ranked creators in a league class (Ultra+ full, others teaser)
+      description: Returns up to 99 ranked creators for Ultra+, or 5 teaser entries for lower tiers.
+      parameters:
+        - name: region
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: classType
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Class type integer (2000=A1, 1900=A2, 1000=C1, etc.)
+      responses:
+        "200":
+          description: Ranked creator list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardLeague"
+        "402":
+          description: Tier requirement not met
+
+  /tiktok/gifters/leaderboard:
+    get:
+      operationId: getGiftersLeaderboard
+      tags: [tiktok]
+      summary: Cross-creator gifter whale leaderboard
+      description: Top spenders across TikTok LIVE in a region and time window. Global Agency exclusive for unmasked rows.
+      parameters:
+        - name: region
+          in: query
+          schema:
+            type: string
+          description: Region filter (e.g. BK, US+). Default GLOBAL.
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: daily | weekly | monthly | lifetime
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: Rows to return (max 200, default 100)
+      responses:
+        "200":
+          description: Gifters leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/gifters/top:
+    get:
+      operationId: getTopGifters
+      tags: [tiktok]
+      summary: Top gifters for a single creator
+      description: Per-period breakdowns + each gifter's share of the creator's total income. Global Agency exclusive for unmasked rows.
+      parameters:
+        - name: creator
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Creator username (without @)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: Rows to return (max 50, default 10)
+      responses:
+        "200":
+          description: Top gifters for creator
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/gifters/profile:
+    get:
+      operationId: getGifterProfile
+      tags: [tiktok]
+      summary: Deep gifter profile
+      description: Lifetime diamonds, creators supported, loyalty score, latest big gifts and historical velocity. Global Agency exclusive for unmasked identifiers.
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Gifter username (without @)
+      responses:
+        "200":
+          description: Gifter profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/live-analytics/video-list:
+    get:
+      operationId: getLiveAnalyticsVideoList
+      tags: [tiktok]
+      summary: List historical live stream recordings
+      description: Past streams with metadata (title, duration, viewer count, date). Requires x-tiktok-cookie header with TikTok session cookies.
+      parameters:
+        - name: unique_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: count
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Video list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/live-analytics/video-detail:
+    get:
+      operationId: getLiveAnalyticsVideoDetail
+      tags: [tiktok]
+      summary: Granular analytics for a specific past live stream
+      description: Total views, peak viewers, gifts, new followers, engagement rates. Requires x-tiktok-cookie header.
+      parameters:
+        - name: video_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Video detail analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/live-analytics/user-interactions:
+    get:
+      operationId: getLiveAnalyticsUserInteractions
+      tags: [tiktok]
+      summary: Real-time audience roster ranked by gift score
+      description: Sign-and-return pattern. Returns signed_url to fetch with your session cookies. Requires x-tiktok-cookie header.
+      parameters:
+        - name: room_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: count
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User interactions leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/webhooks:
+    get:
+      operationId: listWebhooks
+      tags: [tiktok]
+      summary: List registered webhooks
+      responses:
+        "200":
+          description: Webhook list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+    post:
+      operationId: createWebhook
+      tags: [tiktok]
+      summary: Create a webhook
+      description: Register a URL to receive live.start and live.end events for watched creators.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWebhookRequest"
+      responses:
+        "200":
+          description: Created webhook
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/webhooks/{id}:
+    delete:
+      operationId: deleteWebhook
+      tags: [tiktok]
+      summary: Delete a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /tiktok/webhooks/{id}/test:
+    post:
+      operationId: testWebhook
+      tags: [tiktok]
+      summary: Send a test delivery to a webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookTestPayload"
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /events/rules:
+    get:
+      operationId: listEventRules
+      tags: [events]
+      summary: List automation rules for the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRuleListResponse"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createEventRule
+      tags: [events]
+      summary: Create a new automation rule
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventRuleInput"
+      responses:
+        "201":
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRule"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+    delete:
+      operationId: deleteAllEventRules
+      tags: [events]
+      summary: Delete all rules for the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /events/rules/import:
+    post:
+      operationId: importEventRules
+      tags: [events]
+      summary: Import rules from JSON (replaces all existing rules)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventRuleImportRequest"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRuleImportResponse"
+
+  /events/rules/{id}:
+    put:
+      operationId: updateEventRule
+      tags: [events]
+      summary: Full update of a rule
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventRuleInput"
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRule"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEventRule
+      tags: [events]
+      summary: Delete a rule
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Not found
+
+  /events/rules/{id}/toggle:
+    patch:
+      operationId: toggleEventRule
+      tags: [events]
+      summary: Toggle enabled/disabled for a rule
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventRule"
+
+  /landing:
+    get:
+      operationId: getLandingContent
+      tags: [config]
+      summary: Get landing page content (public)
+      description: Returns the landing page content including hero, features, plan config and CTA. Public endpoint.
+      responses:
+        "200":
+          description: Landing page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LandingContent"
+    put:
+      operationId: updateLandingContent
+      tags: [config]
+      summary: Update landing page content (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LandingContent"
+      responses:
+        "200":
+          description: Updated landing page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LandingContent"
+        "403":
+          description: Admin access required
+
+  /config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: Get configuration
+      description: Returns current app configuration (API key is masked)
+      responses:
+        "200":
+          description: Config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppConfig"
+    post:
+      operationId: saveConfig
+      tags: [config]
+      summary: Save configuration
+      description: Save the tik.tools API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigInput"
+      responses:
+        "200":
+          description: Config saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppConfig"
+
+  /maintenance:
+    get:
+      operationId: getMaintenance
+      tags: [tiktok]
+      summary: Get public maintenance status
+      responses:
+        "200":
+          description: Maintenance status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /ui-config:
+    get:
+      operationId: getUiConfig
+      tags: [tiktok]
+      summary: Get UI configuration
+      responses:
+        "200":
+          description: UI configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /admin/maintenance:
+    get:
+      operationId: getAdminMaintenance
+      tags: [tiktok]
+      summary: Get admin maintenance config
+      responses:
+        "200":
+          description: Full maintenance config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /admin/ui-config:
+    get:
+      operationId: getAdminUiConfig
+      tags: [tiktok]
+      summary: Get admin UI config
+      responses:
+        "200":
+          description: Full UI config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassthroughResponse"
+
+  /media:
+    get:
+      operationId: listMedia
+      tags: [media]
+      summary: List user media items
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of media items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaListResponse"
+        "401":
+          description: Unauthorized
+
+  /media/upload:
+    post:
+      operationId: uploadMedia
+      tags: [media]
+      summary: Upload a media file via multipart/form-data (PNG, JPG, GIF, WebP, max 50 MB)
+      description: "The 'file' field carries the binary image. MIME type and file type are verified server-side via magic bytes. Plan quota is enforced server-side."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/MediaUploadInput"
+      responses:
+        "200":
+          description: Uploaded item metadata and public URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaUploadResponse"
+        "400":
+          description: Invalid or missing file
+        "401":
+          description: Unauthorized
+        "413":
+          description: Storage quota exceeded for user plan
+
+  /media/storage:
+    get:
+      operationId: getMediaStorage
+      tags: [media]
+      summary: Get storage usage (plan limit enforced server-side)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Storage usage and limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaStorageResponse"
+        "401":
+          description: Unauthorized
+
+  /media/{id}:
+    patch:
+      operationId: patchMedia
+      tags: [media]
+      summary: Rename or change category of a media item
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaPatchInput"
+      responses:
+        "200":
+          description: Updated media item
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    $ref: "#/components/schemas/MediaItem"
+                required: [item]
+        "401":
+          description: Unauthorized
+        "404":
+          description: Item not found
+    delete:
+      operationId: deleteMedia
+      tags: [media]
+      summary: Delete a media item and its file
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
+        "401":
+          description: Unauthorized
+        "404":
+          description: Item not found
+
+  /profile:
+    get:
+      operationId: getPublicProfileSettings
+      tags: [profile]
+      summary: Get current user's public profile settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Public profile settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfileSettings"
+        "401":
+          description: Unauthorized
+    patch:
+      operationId: updatePublicProfileSettings
+      tags: [profile]
+      summary: Update current user's public profile settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublicProfileUpdate"
+      responses:
+        "200":
+          description: Updated public profile settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfileSettings"
+        "401":
+          description: Unauthorized
+
+  /profile/public/{username}:
+    get:
+      operationId: getStreamerPublicProfile
+      tags: [profile]
+      summary: Get streamer public profile (no auth required)
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public profile data with live status and top gifters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamerPublicProfile"
+        "404":
+          description: Profile not found or not public
+
+  /layouts:
+    get:
+      operationId: getLayouts
+      tags: [layouts]
+      summary: List all saved layout presets for the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of presets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LayoutPreset"
+    post:
+      operationId: createLayout
+      tags: [layouts]
+      summary: Save a new layout preset
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LayoutInput"
+      responses:
+        "201":
+          description: Created preset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LayoutPreset"
+        "400":
+          description: Validation error or preset limit reached
+
+  /layouts/{id}:
+    patch:
+      operationId: renameLayout
+      tags: [layouts]
+      summary: Rename a layout preset
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LayoutRenameInput"
+      responses:
+        "200":
+          description: Updated preset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LayoutPreset"
+        "404":
+          description: Preset not found
+    delete:
+      operationId: deleteLayout
+      tags: [layouts]
+      summary: Delete a layout preset
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Preset not found
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    SocialLinks:
+      type: object
+      properties:
+        instagram:
+          type: string
+        youtube:
+          type: string
+        whatsapp:
+          type: string
+        discord:
+          type: string
+        custom:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              url:
+                type: string
+            required: [label, url]
+
+    PublicProfileSettings:
+      type: object
+      properties:
+        publicProfileEnabled:
+          type: boolean
+        profileBio:
+          type: string
+          nullable: true
+        profileBanner:
+          type: string
+          nullable: true
+        socialLinks:
+          $ref: "#/components/schemas/SocialLinks"
+      required: [publicProfileEnabled, socialLinks]
+
+    PublicProfileUpdate:
+      type: object
+      properties:
+        publicProfileEnabled:
+          type: boolean
+        profileBio:
+          type: string
+        profileBanner:
+          type: string
+        socialLinks:
+          $ref: "#/components/schemas/SocialLinks"
+
+    TopGifter:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+        diamondCount:
+          type: number
+      required: [username, displayName, diamondCount]
+
+    ProfileSections:
+      type: object
+      properties:
+        showStats:
+          type: boolean
+        showLiveStatus:
+          type: boolean
+        showTopGifts:
+          type: boolean
+        showTopGifters:
+          type: boolean
+        showSocialLinks:
+          type: boolean
+      required: [showStats, showLiveStatus, showTopGifts, showTopGifters, showSocialLinks]
+
+    LayoutInput:
+      type: object
+      properties:
+        name:
+          type: string
+        layers:
+          type: array
+          items:
+            type: object
+      required: [name, layers]
+
+    LayoutRenameInput:
+      type: object
+      properties:
+        name:
+          type: string
+      required: [name]
+
+    LayoutPreset:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        layers:
+          type: array
+          items:
+            type: object
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required: [id, name, layers, createdAt, updatedAt]
+
+    StreamerPublicProfile:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+        followerCount:
+          type: number
+          nullable: true
+        totalLiveSessions:
+          type: number
+          nullable: true
+        verified:
+          type: boolean
+        bio:
+          type: string
+          nullable: true
+        banner:
+          type: string
+          nullable: true
+        socialLinks:
+          $ref: "#/components/schemas/SocialLinks"
+        isLive:
+          type: boolean
+        viewerCount:
+          type: number
+          nullable: true
+        likeCount:
+          type: number
+          nullable: true
+        topGifters:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopGifter"
+        topGifts:
+          type: array
+          items:
+            type: object
+            properties:
+              giftName:
+                type: string
+              count:
+                type: number
+              diamondValue:
+                type: number
+            required: [giftName, count, diamondValue]
+        profileSections:
+          $ref: "#/components/schemas/ProfileSections"
+      required: [username, displayName, verified, socialLinks, isLive, topGifters, topGifts]
+
+    LandingFeature:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        imageUrl:
+          type: string
+        demoUrl:
+          type: string
+        order:
+          type: integer
+      required: [id, title, description, icon, imageUrl, demoUrl, order]
+
+    LandingContent:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        hero:
+          type: object
+          properties:
+            headline:
+              type: string
+            subheadline:
+              type: string
+            ctaLabel:
+              type: string
+            backgroundGradient:
+              type: string
+          required: [headline, subheadline, ctaLabel, backgroundGradient]
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/LandingFeature"
+        plans:
+          type: object
+          properties:
+            visiblePlanIds:
+              type: array
+              items:
+                type: string
+            recommendedPlanId:
+              type: string
+          required: [visiblePlanIds, recommendedPlanId]
+        cta:
+          type: object
+          properties:
+            text:
+              type: string
+            subtext:
+              type: string
+            buttonLabel:
+              type: string
+          required: [text, subtext, buttonLabel]
+      required: [enabled, hero, features, plans, cta]
+
+    PassthroughResponse:
+      type: object
+      description: Raw passthrough response from tik.tools API
+      additionalProperties: true
+
+    LiveChannel:
+      type: object
+      description: A currently live TikTok channel.
+      properties:
+        uniqueId:
+          type: string
+        nickname:
+          type: ["string", "null"]
+          description: Display name (mapped from tik.tools displayName field)
+        profilePictureUrl:
+          type: ["string", "null"]
+        roomId:
+          type: ["string", "null"]
+        viewerCount:
+          type: ["integer", "null"]
+        title:
+          type: ["string", "null"]
+        region:
+          type: ["string", "null"]
+          description: Two-letter region code (e.g. TW, CA, US)
+      required: [uniqueId]
+
+    LiveStatus:
+      type: object
+      properties:
+        uniqueId:
+          type: string
+        isLive:
+          type: boolean
+        roomId:
+          type: ["string", "null"]
+        cached:
+          type: boolean
+      required: [uniqueId, isLive, cached]
+
+    CheckAliveItem:
+      type: object
+      properties:
+        roomId:
+          type: ["string", "null"]
+        alive:
+          type: boolean
+        title:
+          type: ["string", "null"]
+        userCount:
+          type: ["integer", "null"]
+      required: [alive]
+
+    CheckAliveData:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CheckAliveItem"
+      required: [statusCode, data]
+
+    LiveConnectData:
+      type: object
+      description: Bundled JWT token and stream URLs
+      additionalProperties: true
+
+    JwtRequest:
+      type: object
+      properties:
+        uniqueId:
+          type: string
+        expireAfter:
+          type: integer
+          description: Seconds until JWT expires (default 600)
+      required: [uniqueId]
+
+    JwtResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        uniqueId:
+          type: string
+      required: [token, uniqueId]
+
+    RoomInfoRequest:
+      type: object
+      properties:
+        uniqueId:
+          type: ["string", "null"]
+        roomId:
+          type: ["string", "null"]
+
+    RoomInfo:
+      type: object
+      properties:
+        roomId:
+          type: ["string", "null"]
+        alive:
+          type: boolean
+        title:
+          type: ["string", "null"]
+        viewerCount:
+          type: ["integer", "null"]
+        likeCount:
+          type: ["integer", "null"]
+        owner:
+          $ref: "#/components/schemas/RoomOwner"
+      required: [alive]
+
+    RoomOwner:
+      type: object
+      properties:
+        uniqueId:
+          type: ["string", "null"]
+        nickname:
+          type: ["string", "null"]
+        profilePictureUrl:
+          type: ["string", "null"]
+
+    WebcastFetchRequest:
+      type: object
+      properties:
+        unique_id:
+          type: string
+        room_id:
+          type: string
+        cursor:
+          type: string
+
+    WebcastFetchData:
+      type: object
+      additionalProperties: true
+
+    BulkCheckRequest:
+      type: object
+      properties:
+        uniqueIds:
+          type: array
+          items:
+            type: string
+      required: [uniqueIds]
+
+    BulkCheckResult:
+      type: object
+      properties:
+        uniqueId:
+          type: string
+        isLive:
+          type: boolean
+        roomId:
+          type: ["string", "null"]
+        title:
+          type: ["string", "null"]
+          description: Available on Basic+ tier only
+        viewerCount:
+          type: ["integer", "null"]
+          description: Available on Basic+ tier only
+      required: [uniqueId, isLive]
+
+    RateLimits:
+      type: object
+      properties:
+        tier:
+          type: string
+        apiLimit:
+          type: integer
+        apiRemaining:
+          type: integer
+        apiResetAt:
+          type: ["integer", "null"]
+        wsLimit:
+          type: integer
+        wsCurrent:
+          type: integer
+        bulkCheckLimit:
+          type: ["integer", "null"]
+      required: [tier, apiLimit, apiRemaining, wsLimit, wsCurrent]
+
+    GiftItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        iconUrl:
+          type: string
+        diamondCount:
+          type: integer
+        valueUsd:
+          type: number
+        valueBrl:
+          type: number
+        rank:
+          type: integer
+          description: Position index in the source list (lower = appears earlier in catalog; use for popularity sort)
+      required: [id, name, iconUrl, diamondCount, valueUsd, valueBrl, rank]
+
+    GiftSettings:
+      type: object
+      properties:
+        brlPerUsd:
+          type: number
+      required: [brlPerUsd]
+
+    CustomGift:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        iconUrl:
+          type: string
+        diamondCount:
+          type: integer
+        source:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, name, iconUrl, diamondCount, source, createdAt, updatedAt]
+
+    UserProfile:
+      type: object
+      properties:
+        uniqueId:
+          type: string
+        nickname:
+          type: ["string", "null"]
+        profilePictureUrl:
+          type: ["string", "null"]
+        followerCount:
+          type: ["integer", "null"]
+        followingCount:
+          type: ["integer", "null"]
+        videoCount:
+          type: ["integer", "null"]
+        likeCount:
+          type: ["integer", "null"]
+        bio:
+          type: ["string", "null"]
+        available:
+          type: boolean
+          description: False when the endpoint requires a higher tier
+        requiredTier:
+          type: ["string", "null"]
+      required: [uniqueId, available]
+
+    AppConfig:
+      type: object
+      properties:
+        apiKeySet:
+          type: boolean
+        apiKeyMasked:
+          type: ["string", "null"]
+        tier:
+          type: ["string", "null"]
+      required: [apiKeySet]
+
+    ConfigInput:
+      type: object
+      properties:
+        apiKey:
+          type: string
+      required: [apiKey]
+
+    SignUrlRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Raw TikTok webcast URL to sign
+      required: [url]
+
+    SignedUrlData:
+      type: object
+      properties:
+        signedUrl:
+          type: ["string", "null"]
+        xBogus:
+          type: ["string", "null"]
+        xGnarly:
+          type: ["string", "null"]
+        userAgent:
+          type: ["string", "null"]
+        cookies:
+          type: ["string", "null"]
+
+    RegionalRanklistRequest:
+      type: object
+      properties:
+        unique_id:
+          type: string
+        room_id:
+          type: string
+        anchor_id:
+          type: string
+        rank_type:
+          type: string
+          description: "1=Hourly, 8=Daily (default), 15=Popular LIVE, 16=League"
+        type:
+          type: string
+          description: list | entrance
+        gap_interval:
+          type: string
+
+    LiveCountsResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+        global_live:
+          type: integer
+        global_live_verified:
+          type: integer
+        regions:
+          type: object
+          additionalProperties:
+            type: integer
+
+    CreateWebhookRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          description: HTTPS URL to receive webhook deliveries
+        events:
+          type: array
+          items:
+            type: string
+          description: Events to subscribe to (e.g. live.start, live.end)
+        creators:
+          type: array
+          items:
+            type: string
+          description: TikTok usernames to watch (without @)
+        secret:
+          type: string
+          description: Optional secret for HMAC signature verification
+      required: [url, events]
+
+    LeagueInfo:
+      type: object
+      properties:
+        classType:
+          type: integer
+        classLabel:
+          type: string
+      required: [classType, classLabel]
+
+    LeaderboardLeagues:
+      type: object
+      properties:
+        region:
+          type: string
+        available:
+          type: boolean
+        leagues:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeagueInfo"
+      required: [region, available, leagues]
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        score:
+          type: integer
+        uniqueId:
+          type: string
+        nickname:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        isLive:
+          type: boolean
+        roomId:
+          type: ["string", "null"]
+      required: [rank, score, uniqueId, isLive]
+
+    LeaderboardLeague:
+      type: object
+      properties:
+        region:
+          type: string
+        classType:
+          type: integer
+        classLabel:
+          type: string
+        teaser:
+          type: boolean
+          description: True when only 5 sample entries are returned (non-Ultra tier)
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+      required: [region, classType, classLabel, teaser, entries]
+
+    WebhookTestPayload:
+      type: object
+      description: Optional payload for webhook test delivery
+      additionalProperties: true
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required: [ok]
+
+    RuleAction:
+      type: object
+      description: A single action to execute when a rule fires
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          description: "play_sound | tts | overlay_alert | overlay_color | display_message | http_webhook | discord_webhook | delay"
+        params:
+          type: object
+          additionalProperties: true
+      required: [id, type, params]
+
+    EventRule:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        enabled:
+          type: boolean
+        triggerType:
+          type: string
+          description: "any_gift | gift_min_coins | gift_specific | follow | like_count | share | subscribe | chat_word | viewer_count | top_gifter_changed | first_chat | member_join"
+        triggerFilters:
+          type: object
+          additionalProperties: true
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuleAction"
+        cooldownSeconds:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, userId, name, enabled, triggerType, triggerFilters, actions, cooldownSeconds, createdAt, updatedAt]
+
+    EventRuleInput:
+      type: object
+      properties:
+        name:
+          type: string
+        enabled:
+          type: boolean
+        triggerType:
+          type: string
+        triggerFilters:
+          type: object
+          additionalProperties: true
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuleAction"
+        cooldownSeconds:
+          type: integer
+      required: [name, triggerType]
+
+    EventRuleListResponse:
+      type: object
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventRule"
+      required: [rules]
+
+    EventRuleImportRequest:
+      type: object
+      properties:
+        rules:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [rules]
+
+    EventRuleImportResponse:
+      type: object
+      properties:
+        imported:
+          type: integer
+      required: [imported]
+
+    MediaUploadInput:
+      type: object
+      description: "Multipart upload fields. The binary 'file' field is sent as a separate form part and is not typed here to avoid browser-only File/Blob types in server-side schemas."
+      properties:
+        category:
+          type: string
+          enum: [Geral, Banners, Logos, QR Codes, Thumbnails]
+          default: Geral
+        name:
+          type: string
+          description: Optional display name; defaults to original filename
+
+    MediaPatchInput:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [Geral, Banners, Logos, QR Codes, Thumbnails]
+
+    MediaItem:
+      type: object
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        originalName:
+          type: string
+        category:
+          type: string
+        size:
+          type: integer
+          description: File size in bytes
+        mimeType:
+          type: string
+        width:
+          type: integer
+          nullable: true
+          description: Image width in pixels (null if not extractable)
+        height:
+          type: integer
+          nullable: true
+          description: Image height in pixels (null if not extractable)
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, filename, originalName, category, size, mimeType, width, height, createdAt]
+
+    MediaListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MediaItem"
+      required: [items]
+
+    MediaUploadResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/MediaItem"
+        url:
+          type: string
+          description: Public URL path for the uploaded file
+      required: [item, url]
+
+    MediaStorageResponse:
+      type: object
+      properties:
+        used:
+          type: integer
+          description: Bytes used
+        limit:
+          type: integer
+          description: Bytes allowed by the user plan
+        plan:
+          type: string
+          description: User plan (free, basic, pro)
+        count:
+          type: integer
+          description: Number of files stored
+        categories:
+          type: array
+          items:
+            type: string
+      required: [used, limit, plan, count, categories]
+

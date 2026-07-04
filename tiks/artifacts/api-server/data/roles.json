@@ -1,0 +1,28 @@
+{
+  "roles": [
+    {
+      "id": "role_aawmmmwp8ypmqzkkut2",
+      "name": "DONO",
+      "description": "Big Boss",
+      "color": "#eab308",
+      "permissions": [
+        "view_dashboard",
+        "view_monitor",
+        "view_bulk_check",
+        "view_gaming_leaderboard",
+        "view_gifters",
+        "view_webhooks",
+        "view_live_captions",
+        "view_live_analytics",
+        "view_country_leaderboard",
+        "view_gift_gallery",
+        "use_jwt",
+        "use_watchlist",
+        "change_tiktok_username",
+        "view_admin_panel"
+      ],
+      "createdAt": "2026-06-29T18:47:12.373Z",
+      "updatedAt": "2026-06-30T01:25:29.493Z"
+    }
+  ]
+}

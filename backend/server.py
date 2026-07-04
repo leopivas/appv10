@@ -1,89 +1,76 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import StreamingResponse, PlainTextResponse
+import httpx, os, subprocess, atexit, time, signal, pathlib, logging
 
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("proxy")
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+app = FastAPI(title="Creatools Proxy")
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+NODE_URL = "http://127.0.0.1:8081"
+node_proc: subprocess.Popen | None = None
 
-# Create the main app without a prefix
-app = FastAPI()
+def start_node():
+    global node_proc
+    if node_proc and node_proc.poll() is None:
+        return
+    workdir = pathlib.Path("/app/tiks/artifacts/api-server")
+    env = os.environ.copy()
+    env["PORT"] = "8081"
+    env["NODE_ENV"] = env.get("NODE_ENV", "development")
+    env["JWT_SECRET"] = env.get("JWT_SECRET", "creatools-secret-change-in-production")
+    log.info("Starting Node api-server on 8081...")
+    node_proc = subprocess.Popen(
+        ["node", "--enable-source-maps", "./dist/index.mjs"],
+        cwd=str(workdir), env=env,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    # wait until healthy
+    for _ in range(40):
+        try:
+            r = httpx.get(f"{NODE_URL}/api/healthz", timeout=1.0)
+            if r.status_code == 200:
+                log.info("Node ready")
+                return
+        except Exception:
+            pass
+        time.sleep(0.5)
+    log.warning("Node health check timed out")
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+def stop_node():
+    global node_proc
+    if node_proc and node_proc.poll() is None:
+        try: os.killpg(os.getpgid(node_proc.pid), signal.SIGTERM)
+        except Exception: pass
+atexit.register(stop_node)
 
+@app.on_event("startup")
+async def _startup():
+    start_node()
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+_client = httpx.AsyncClient(base_url=NODE_URL, timeout=60.0)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+@app.get("/api/_proxy/health")
+async def health():
+    try:
+        r = await _client.get("/api/healthz")
+        return {"proxy": "ok", "node": r.json()}
+    except Exception as e:
+        return {"proxy": "ok", "node_error": str(e)}
 
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+@app.api_route("/api/{full_path:path}", methods=["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"])
+async def proxy(full_path: str, request: Request):
+    if node_proc is None or node_proc.poll() is not None:
+        start_node()
+    body = await request.body()
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in ("host", "content-length")}
+    try:
+        r = await _client.request(
+            request.method, f"/api/{full_path}",
+            params=request.query_params, content=body, headers=headers,
+        )
+    except httpx.RequestError as e:
+        return PlainTextResponse(f"upstream error: {e}", status_code=502)
+    resp_headers = {k: v for k, v in r.headers.items() if k.lower() not in ("content-encoding", "transfer-encoding", "content-length", "connection")}
+    return Response(content=r.content, status_code=r.status_code, headers=resp_headers, media_type=r.headers.get("content-type"))

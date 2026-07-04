@@ -1,0 +1,12 @@
+{
+  "announcements": [
+    {
+      "id": "ann_welcome",
+      "title": "Bem-vindo ao Creatools!",
+      "body": "Plataforma de monitoramento TikTok LIVE em tempo real. Acompanhe lives, bulk-check e muito mais.",
+      "type": "info",
+      "pinned": true,
+      "createdAt": 1751260800000
+    }
+  ]
+}

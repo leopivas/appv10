@@ -1,0 +1,3 @@
+# Admin-configured API keys and payment settings (sensitive, stored at runtime)
+data/config.json
+data/stripe-config.json

@@ -1,0 +1,46 @@
+import { Router, type IRouter } from "express";
+import healthRouter from "./health";
+import tiktokRouter from "./tiktok";
+import configRouter from "./config";
+import authRouter from "./auth";
+import stripeRouter from "./stripe";
+import adminToolsRouter from "./admin-tools";
+import rolesRouter from "./roles";
+import plansRouter from "./plans";
+import uiConfigRouter from "./ui-config";
+import supportRouter from "./support";
+import setupRouter from "./setup";
+import systemRouter from "./system";
+import announcementsRouter from "./announcements";
+import landingRouter from "./landing";
+import eventsRouter from "./events";
+import mediaRouter from "./media";
+import profileRouter from "./profile";
+import giftsRouter from "./gifts";
+import layoutsRouter from "./layouts";
+import serversRouter from "./servers";
+
+const router: IRouter = Router();
+
+router.use(authRouter);
+router.use(healthRouter);
+router.use(tiktokRouter);
+router.use(configRouter);
+router.use(stripeRouter);
+router.use(adminToolsRouter);
+router.use(rolesRouter);
+router.use(plansRouter);
+router.use(uiConfigRouter);
+router.use(supportRouter);
+router.use(setupRouter);
+router.use(systemRouter);
+router.use(announcementsRouter);
+router.use(landingRouter);
+router.use(eventsRouter);
+router.use(mediaRouter);
+router.use(profileRouter);
+router.use(giftsRouter);
+router.use(layoutsRouter);
+router.use(serversRouter);
+
+export default router;
