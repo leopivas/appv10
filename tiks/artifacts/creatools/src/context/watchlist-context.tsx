@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 const STORAGE_KEY = "creatools_watchlist";
 const EVENTS_KEY = "creatools_watch_events";
 // Auto-polling só ocorre quando o plano do usuário permitir (autoLiveMonitoring=true).
-// A verificação é feita em runtime consultando /api/auth/me + /api/plans.
 const POLL_INTERVAL_MS = 60_000;
 const MAX_EVENTS = 100;
 
