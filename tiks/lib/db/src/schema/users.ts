@@ -28,6 +28,7 @@ export const usersTable = pgTable("users", {
   socialLinks:              text("social_links"),
   profileSections:          text("profile_sections"),
   totalLiveSessions:        integer("total_live_sessions").notNull().default(0),
+  limitsOverride:           text("limits_override"),
 });
 
 export type UserRow = typeof usersTable.$inferSelect;

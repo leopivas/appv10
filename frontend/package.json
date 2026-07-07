@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "cd /app/tiks && PORT=3000 BASE_PATH=/ NODE_ENV=development pnpm --filter @workspace/creatools run dev",
-    "build": "cd /app/tiks && pnpm --filter @workspace/creatools run build"
+    "start": "cd /app/tiks/artifacts/creatools && PORT=3000 BASE_PATH=/ NODE_ENV=development node_modules/.bin/vite --config vite.config.ts --host 0.0.0.0",
+    "build": "cd /app/tiks/artifacts/creatools && PORT=3000 BASE_PATH=/ node_modules/.bin/vite build --config vite.config.ts"
   }
 }

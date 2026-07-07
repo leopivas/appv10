@@ -151,42 +151,107 @@ router.get("/tiktok/verify-username", async (req, res): Promise<void> => {
   }
   const handle = uniqueId.trim().replace(/^@/, "");
   try {
-    const apiKey = process.env.TIKTOOLS_API_KEY;
+    // ── 1) PRIMARY: TikTok's public oEmbed endpoint (free, no API key, works globally)
+    try {
+      const oembedR = await fetch(
+        `https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/@${handle}`)}`,
+        { headers: { "User-Agent": "Mozilla/5.0 (compatible; CreatoolsBot/1.0)" } }
+      );
+      if (oembedR.status === 200) {
+        const oembed = await oembedR.json() as {
+          author_name?: string;
+          author_url?: string;
+          thumbnail_url?: string;
+          title?: string;
+        };
+        // author_url looks like "https://www.tiktok.com/@handle"
+        const canonicalHandle = oembed.author_url?.match(/@([^/?]+)/)?.[1] ?? handle;
+
+        // Try to fetch the public HTML page for the avatar (best-effort)
+        let profilePictureUrl: string | null = null;
+        let followerCount = 0;
+        let bio: string | null = null;
+        let verified = false;
+        try {
+          const pageR = await fetch(`https://www.tiktok.com/@${encodeURIComponent(handle)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Accept-Language": "en-US,en;q=0.9",
+            },
+          });
+          if (pageR.ok) {
+            const html = await pageR.text();
+            // Extract SIGI_STATE / __UNIVERSAL_DATA_FOR_REHYDRATION__ JSON blob
+            const match = html.match(/<script[^>]+id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/);
+            if (match) {
+              try {
+                const data = JSON.parse(match[1]) as Record<string, unknown>;
+                const scope = ((data.__DEFAULT_SCOPE__ ?? {}) as Record<string, unknown>);
+                const userDetail = (scope["webapp.user-detail"] ?? {}) as Record<string, unknown>;
+                const userInfo = (userDetail.userInfo ?? {}) as Record<string, unknown>;
+                const user = (userInfo.user ?? {}) as Record<string, unknown>;
+                const stats = (userInfo.stats ?? {}) as Record<string, unknown>;
+                profilePictureUrl = (user.avatarLarger ?? user.avatarMedium ?? user.avatarThumb ?? null) as string | null;
+                followerCount = Number(stats.followerCount ?? 0);
+                bio = (user.signature ?? null) as string | null;
+                verified = !!user.verified;
+              } catch { /* ignore parse errors */ }
+            }
+          }
+        } catch { /* ignore html fetch errors */ }
+
+        res.json({
+          exists: true,
+          uniqueId: canonicalHandle,
+          nickname: oembed.author_name ?? null,
+          profilePictureUrl,
+          followerCount,
+          followingCount: 0,
+          bioDescription: bio,
+          verified,
+        });
+        return;
+      }
+      if (oembedR.status === 400 || oembedR.status === 404) {
+        // Confirmed non-existent user
+        res.json({ exists: false, uniqueId: handle });
+        return;
+      }
+    } catch { /* oembed unreachable, fall through */ }
+
+    // ── 2) FALLBACK: tik.tools live_status (requires API key, but free tier works)
+    const apiKey = process.env.TIKTOOLS_API_KEY || loadPersistedApiKey();
     if (!apiKey) {
-      // No API key: cannot verify — return null so the UI doesn't block the user
-      res.json({ exists: null, uniqueId: handle, reason: "no_api_key" }); return;
+      res.json({ exists: null, uniqueId: handle, reason: "no_api_key" });
+      return;
     }
-    // Use user-profile endpoint for full data
-    const r = await fetch(
-      `${TIKTOOLS_API}/api/user/profile?apiKey=${apiKey}&uniqueId=${encodeURIComponent(handle)}`
+    const statusR = await fetch(
+      `${TIKTOOLS_API}/webcast/live_status?apiKey=${apiKey}&unique_id=${encodeURIComponent(handle)}`
     );
-    if (r.status === 404 || r.status === 400) {
-      res.json({ exists: false, uniqueId: handle }); return;
-    }
-    const json = await r.json() as {
-      uniqueId?: string;
-      nickname?: string;
-      profilePictureUrl?: string | null;
-      followerCount?: number;
-      followingCount?: number;
-      bioDescription?: string | null;
-      verified?: boolean;
+    const statusJson = await statusR.json() as {
+      status_code?: number;
+      data?: { unique_id?: string; is_live?: boolean; room_id?: string | null };
     };
-
-    if (!json.uniqueId) {
-      res.json({ exists: false, uniqueId: handle }); return;
+    if (statusJson.status_code === 0) {
+      const roomId = statusJson.data?.room_id;
+      const exists = !!(roomId && roomId.length > 0);
+      res.json({
+        exists,
+        uniqueId: statusJson.data?.unique_id ?? handle,
+        nickname: null,
+        profilePictureUrl: null,
+        followerCount: 0,
+        followingCount: 0,
+        bioDescription: null,
+        verified: false,
+        isLive: statusJson.data?.is_live ?? false,
+        roomId: roomId ?? null,
+      });
+      return;
     }
 
-    res.json({
-      exists: true,
-      uniqueId: json.uniqueId,
-      nickname: json.nickname ?? null,
-      profilePictureUrl: json.profilePictureUrl ?? null,
-      followerCount: json.followerCount ?? 0,
-      followingCount: json.followingCount ?? 0,
-      bioDescription: json.bioDescription ?? null,
-      verified: json.verified ?? false,
-    });
+    // Unknown status — do not block user
+    res.json({ exists: null, uniqueId: handle, reason: "api_error" });
   } catch (err) {
     req.log.warn({ err, handle }, "Failed to verify TikTok username");
     // Soft fail — do not block registration on API errors

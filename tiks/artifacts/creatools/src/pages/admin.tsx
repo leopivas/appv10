@@ -46,7 +46,10 @@ interface Plan {
   id: string; order?: number; name: string; description: string; price: number;
   currency: string; billingPeriod: string; permissions: string[];
   tiktokUsernameChangesPerWeek: number; maxConcurrentWs: number; maxApiCallsPerWindow: number;
-  maxLiveHoursPerMonth: number; maxLiveAnalyses: number; maxWebhooks: number;
+  maxLiveHoursPerMonth: number; maxLiveHoursPerDay: number;
+  maxLiveAnalyses: number; maxWebhooks: number;
+  maxActiveOverlays: number; maxActiveScoreboards: number; maxActiveMinigames: number;
+  maxAiChatMessagesPerDay: number; maxAiVideoGenerationsPerMonth: number;
   features: string[]; color: string; isActive: boolean;
 }
 interface PermissionDef { id: string; label: string; category: string; }
@@ -780,12 +783,18 @@ function PlanosSection({ plans, permissions, onRefresh }: { plans: Plan[]; permi
               <p className="text-sm font-semibold">Limites do Plano</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
-                  { label: "Horas de live/mês (-1=ilimitado)", key: "maxLiveHoursPerMonth" as keyof Plan },
-                  { label: "Análises de live (-1=ilimitado)",  key: "maxLiveAnalyses" as keyof Plan },
-                  { label: "Webhooks (-1=ilimitado)",          key: "maxWebhooks" as keyof Plan },
-                  { label: "WebSockets simultâneos",           key: "maxConcurrentWs" as keyof Plan },
-                  { label: "API calls/janela",                 key: "maxApiCallsPerWindow" as keyof Plan },
-                  { label: "Trocas de username/semana",        key: "tiktokUsernameChangesPerWeek" as keyof Plan },
+                  { label: "Horas de live/mês (-1=∞)",    key: "maxLiveHoursPerMonth" as keyof Plan },
+                  { label: "Horas de live/dia (-1=∞)",    key: "maxLiveHoursPerDay" as keyof Plan },
+                  { label: "Análises de live (-1=∞)",     key: "maxLiveAnalyses" as keyof Plan },
+                  { label: "Webhooks (-1=∞)",             key: "maxWebhooks" as keyof Plan },
+                  { label: "Overlays ativos (-1=∞)",      key: "maxActiveOverlays" as keyof Plan },
+                  { label: "Scoreboards ativos (-1=∞)",   key: "maxActiveScoreboards" as keyof Plan },
+                  { label: "Minigames ativos (-1=∞)",     key: "maxActiveMinigames" as keyof Plan },
+                  { label: "Mensagens IA/dia (-1=∞)",     key: "maxAiChatMessagesPerDay" as keyof Plan },
+                  { label: "Vídeos IA/mês (-1=∞)",        key: "maxAiVideoGenerationsPerMonth" as keyof Plan },
+                  { label: "WebSockets simultâneos",       key: "maxConcurrentWs" as keyof Plan },
+                  { label: "API calls/janela",             key: "maxApiCallsPerWindow" as keyof Plan },
+                  { label: "Trocas de username/semana",    key: "tiktokUsernameChangesPerWeek" as keyof Plan },
                 ].map(({ label, key }) => (
                   <div key={key} className="space-y-1.5">
                     <Label className="text-xs">{label}</Label>

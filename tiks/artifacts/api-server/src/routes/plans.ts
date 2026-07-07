@@ -31,8 +31,14 @@ router.patch("/admin/plans/:id", requireAdminMiddleware, async (req, res): Promi
   if (body.maxConcurrentWs !== undefined) updates.maxConcurrentWs = Number(body.maxConcurrentWs);
   if (body.maxApiCallsPerWindow !== undefined) updates.maxApiCallsPerWindow = Number(body.maxApiCallsPerWindow);
   if (body.maxLiveHoursPerMonth !== undefined) updates.maxLiveHoursPerMonth = Number(body.maxLiveHoursPerMonth);
+  if (body.maxLiveHoursPerDay !== undefined) updates.maxLiveHoursPerDay = Number(body.maxLiveHoursPerDay);
   if (body.maxLiveAnalyses !== undefined) updates.maxLiveAnalyses = Number(body.maxLiveAnalyses);
   if (body.maxWebhooks !== undefined) updates.maxWebhooks = Number(body.maxWebhooks);
+  if (body.maxActiveOverlays !== undefined) updates.maxActiveOverlays = Number(body.maxActiveOverlays);
+  if (body.maxActiveScoreboards !== undefined) updates.maxActiveScoreboards = Number(body.maxActiveScoreboards);
+  if (body.maxActiveMinigames !== undefined) updates.maxActiveMinigames = Number(body.maxActiveMinigames);
+  if (body.maxAiChatMessagesPerDay !== undefined) updates.maxAiChatMessagesPerDay = Number(body.maxAiChatMessagesPerDay);
+  if (body.maxAiVideoGenerationsPerMonth !== undefined) updates.maxAiVideoGenerationsPerMonth = Number(body.maxAiVideoGenerationsPerMonth);
   if (Array.isArray(body.features)) updates.features = body.features;
   if (body.color !== undefined) updates.color = body.color;
   if (body.isActive !== undefined) updates.isActive = body.isActive;
@@ -63,8 +69,14 @@ router.post("/admin/plans", requireAdminMiddleware, async (req, res): Promise<vo
     maxConcurrentWs: Number(body.maxConcurrentWs ?? 1),
     maxApiCallsPerWindow: Number(body.maxApiCallsPerWindow ?? 50),
     maxLiveHoursPerMonth: Number(body.maxLiveHoursPerMonth ?? 10),
+    maxLiveHoursPerDay: Number(body.maxLiveHoursPerDay ?? 4),
     maxLiveAnalyses: Number(body.maxLiveAnalyses ?? 50),
     maxWebhooks: Number(body.maxWebhooks ?? 0),
+    maxActiveOverlays: Number(body.maxActiveOverlays ?? 2),
+    maxActiveScoreboards: Number(body.maxActiveScoreboards ?? 1),
+    maxActiveMinigames: Number(body.maxActiveMinigames ?? 1),
+    maxAiChatMessagesPerDay: Number(body.maxAiChatMessagesPerDay ?? 0),
+    maxAiVideoGenerationsPerMonth: Number(body.maxAiVideoGenerationsPerMonth ?? 0),
     features: Array.isArray(body.features) ? body.features : [],
     color: body.color ?? "gray",
     order: Number(body.order ?? allPlans.length),

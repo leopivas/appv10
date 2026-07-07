@@ -1,0 +1,27 @@
+{
+  "summary": "Verified TikTok verify-username fix + granular plan limits feature + auth/overlays regression. All 11 backend pytest tests PASSED. Frontend flows verified via Playwright: (1) TikTok input with 'mrbeast' shows green check + preview card 'MrBeast @mrbeast 129.100.000 seguidores'; (2) fake handle shows red X + 'Usuário @xxxxxx_fake_yyyy_12345 não encontrado'; (3) /admin → Painel Admin → Planos → Editar dialog displays all 6 new granular fields (Horas de live/dia, Overlays ativos, Scoreboards ativos, Minigames ativos, Mensagens IA/dia, Vídeos IA/mês) with -1=∞ hints; (4) PATCH persists new values verified via GET /api/admin/plans; (5) login + /api/auth/me regression OK; (6) /api/layouts (Overlay Studio backend) still returns 200.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tiktok_and_plans.py",
+    "/app/test_reports/pytest/tiktok_plans.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Sidebar has a user-facing 'Planos' item (/plans pricing page) and admin submenu also labelled 'Planos' — could confuse admins. Consider renaming admin submenu to 'Gerenciar Planos'.",
+    "TikTok oEmbed public endpoint is unauthenticated and rate-limited by TikTok; consider caching successful responses for a short TTL to avoid hitting TikTok on every keystroke debounce."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tiktok_and_plans.py"
+  ],
+  "success_rate": { "backend": "100% (11/11)", "frontend": "100%" },
+  "test_credentials": "admin@creatools.co / admin123 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Node backend at 127.0.0.1:8081 fronted by FastAPI at 8001 → public preview https://livestream-control-2.preview.emergentagent.com. Overlay Studio backend route is /api/layouts (NOT /api/overlays). Admin plans management is under /admin → sidebar 'Painel Admin' → 'Planos' (2nd occurrence of 'Planos' text). TikTok verify uses TikTok public oEmbed as primary source — works for real handles (mrbeast/charlidamelio/khaby.lame) returning nickname/avatar/followerCount. Admin user already has tiktokUsername='lariisimoesb' set from prior test; PATCH /api/auth/profile has weekly change limit."
+}
