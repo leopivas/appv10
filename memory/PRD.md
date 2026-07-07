@@ -21,7 +21,17 @@ Usuário quer arrumar erros e adicionar funções ao sistema Creatools (ferramen
 - **Gifter/Espectador**: perfis públicos de streamer
 
 ## Features Implementadas
-### Nesta sessão (Jan 2026)
+### FASE 1 — Overlay Studio (Fev 2026) ✅
+- ✅ **Novo Overlay Studio** (`/overlays`) — layout moderno com sidebar de controles + canvas central de preview
+- ✅ **Canvas preview ao vivo**: iframe embutido mostrando o overlay real; muda instantaneamente ao alterar controles
+- ✅ **Toggle Vertical (9:16 TikTok) / Horizontal (16:9)** — vertical é o default (mobile TikTok)
+- ✅ **Modo Demo (`?demo=1`)**: dispara eventos falsos (gifts, likes, follows, subs, chat) para testar sem estar em live. Toggle na toolbar.
+- ✅ Suporte a `?demo=1` implementado em TODOS os overlays: alerts, combo, top-gifters, stats, goal, subscribe, chat, ticker, obs-overlay (basic)
+- ✅ Helper `useOverlayDemo` em `/app/tiks/artifacts/creatools/src/lib/overlay-demo.ts` gera 40+ tipos de eventos falsos com pesos realísticos
+- ✅ URL de export (sem `?demo=1`) exibida separadamente para copiar para OBS/TikTok Studio
+- ✅ Padrão xadrez no canvas + label "LIVE PREVIEW" para deixar claro que é preview
+
+### Base (Jan 2026)
 - ✅ Migração completa do monorepo `Tik-Tools-Deploy-1-tiks` para `/app/tiks`
 - ✅ PostgreSQL local + drizzle push (schema atual + 3 tabelas novas: `servers`, `server_emulators`, `server_commands`)
 - ✅ FastAPI proxy (`/app/backend/server.py`) spawna Node backend e forwarda `/api/*`
@@ -62,11 +72,23 @@ POST   /api/agent/commands/:cmdId/result       (X-Agent-Key)
 ```
 
 ## Backlog / Próximos passos
-### P0 (usuário pediu — pendente)
-- 🔲 Migrar usuários adicionais do `data/users.json` para o Postgres (só migrei admin@creatools.co e piva@piva.lol)
-- 🔲 Popular tabelas `plans` e `roles` (usuário criará via admin panel ou pelo seed)
-- 🔲 Melhorias em overlays / leaderboards (usuário reclamou; precisa detalhes específicos)
-- 🔲 Features de bettertok.app + tikscan.live (usuário mencionou; precisa lista concreta)
+### FASES CONFIRMADAS PELO USUÁRIO (Fev 2026)
+Ordem: 1 → 2 → 3 → 4 → 5 → 6 → 7. IA via Claude Sonnet 4.5 + Sora 2 + BytePlus (extensível). Storage: Object storage Emergent.
+
+- 🟢 FASE 1: Novo Overlay Studio com preview vertical + demo mode — **FEITO**
+- 🔲 FASE 2 (P0): Scoreboards & Leaderboards com modo demo, redesign visual, preview
+- 🔲 FASE 3 (P1): Controle total de planos — `maxLiveHoursPerDay`, `maxAiRequestsPerMonth`, `maxAiVideosPerMonth`, `maxOverlaysActive`, etc. + override individual + UI matriz completa + tracking de uso
+- 🔲 FASE 4 (P1): AI Assistente (Claude Sonnet 4.5) + AI Vídeos transparentes (Sora 2 + BytePlus) + Object storage
+- 🔲 FASE 5 (P2): Redesign massivo de páginas (minigames, funções, etc.) inspirado em bettertok.app/tikscan.live
+- 🔲 FASE 6 (P2): Agendamento de lives, alertas, multi-conta, relatórios
+- 🔲 FASE 7 (P3): Fix Servers Manager + polimentos
+
+### Ambiente re-provisionado nesta sessão
+- ✅ PostgreSQL 15 instalado + user/db `creatools` criados
+- ✅ pnpm 9 instalado (`/usr/bin/pnpm`)
+- ✅ Schema aplicado (`pnpm push` em `/app/tiks/lib/db`) — 13 tabelas
+- ✅ Admin master `admin@creatools.co` / `admin123` reseeded
+- ✅ Plans (free/basic/pro) reseeded
 
 ### P1
 - 🔲 Página `/servers` : abrir modal com logs full-screen (hoje só mostra os últimos ~200 linhas inline)
