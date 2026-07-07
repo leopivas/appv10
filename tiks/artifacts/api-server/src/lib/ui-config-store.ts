@@ -85,9 +85,17 @@ const DEFAULT_UI_CONFIG: UIConfig = {
       id: "main",
       items: [
         { id: "dashboard",     label: "Dashboard",    href: "/",                icon: "LayoutDashboard", visible: true },
-        { id: "monitor",       label: "Monitor",      href: "/monitor/example", icon: "Activity",        matchPrefix: "/monitor",       visible: true },
+        { id: "monitor",       label: "Conexão",      href: "/streamer/lookup", icon: "Activity",        matchPrefix: "/monitor",       visible: true },
         { id: "notifications", label: "Notificações", href: "/notifications",   icon: "Bell",            matchPrefix: "/notifications", visible: true },
         { id: "gift-gallery",  label: "Gift Gallery", href: "/gift-gallery",    icon: "Diamond",         visible: true },
+      ],
+    },
+    {
+      id: "ia-section",
+      label: "Inteligência Artificial",
+      items: [
+        { id: "ai-assistant", label: "Assistente IA", href: "/ai/assistant", icon: "Bot",   matchPrefix: "/ai/assistant", visible: true },
+        { id: "ai-videos",    label: "Vídeos IA",     href: "/ai/videos",    icon: "Video", matchPrefix: "/ai/videos",    requiresPlan: "basic", visible: true },
       ],
     },
     {
@@ -98,6 +106,9 @@ const DEFAULT_UI_CONFIG: UIConfig = {
         { id: "stream-tools", label: "Stream Tools",     href: "/stream-tools",         icon: "Tv2",       matchPrefix: "/stream-tools",         visible: true },
         { id: "scoreboards",  label: "Scoreboards",      href: "/scoreboards",          icon: "Trophy",    matchPrefix: "/scoreboards",          visible: true },
         { id: "minigames",    label: "Minigames",        href: "/minigames",            icon: "Gamepad2",  matchPrefix: "/minigames",            visible: true },
+        { id: "sound-alerts", label: "Alertas Sonoros",  href: "/sound-alerts",         icon: "Radio",     matchPrefix: "/sound-alerts",         visible: true },
+        { id: "events",       label: "Eventos & Ações",  href: "/events",               icon: "Zap",       matchPrefix: "/events",               requiresPlan: "basic", visible: true },
+        { id: "layout",       label: "Layout OBS",       href: "/layout",               icon: "Monitor",   matchPrefix: "/layout",               requiresPlan: "basic", visible: true },
         { id: "lookup",       label: "Lookup",           href: "/streamer/lookup",      icon: "Search",    matchPrefix: "/streamer/lookup",      visible: true },
         { id: "bulk-check",   label: "Bulk Check",       href: "/streamer/bulk-check",  icon: "Users",     matchPrefix: "/streamer/bulk-check",  requiresPlan: "basic", visible: true },
         { id: "watchlist",    label: "Watchlist",        href: "/streamer/watchlist",   icon: "Star",      matchPrefix: "/streamer/watchlist",   visible: true },
