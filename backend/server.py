@@ -9,11 +9,18 @@ import subprocess
 import time
 
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("proxy")
 
 app = FastAPI(title="Creatools Proxy")
+
+# ── AI router (Claude + Sora + Object Storage) ── mounted BEFORE proxy catch-all
+from ai_router import router as ai_router  # noqa: E402
+app.include_router(ai_router)
 
 NODE_URL = "http://127.0.0.1:8081"
 node_proc: subprocess.Popen | None = None

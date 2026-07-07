@@ -6,6 +6,13 @@ import { getAllUsers } from "../lib/users-store";
 
 const router: IRouter = Router();
 
+// GET /plans — public (used by pricing page & AI router for limits)
+router.get("/plans", async (_req, res): Promise<void> => {
+  const plans = await getAllPlans();
+  const active = plans.filter((p) => p.isActive).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  res.json({ plans: active });
+});
+
 // GET /admin/plans
 router.get("/admin/plans", async (_req, res): Promise<void> => {
   const plans = await getAllPlans();

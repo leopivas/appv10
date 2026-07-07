@@ -69,6 +69,8 @@ import MinigamesSentido from "./pages/minigames-sentido";
 import MinigamesDefender from "./pages/minigames-defender";
 import MinigamesBau from "./pages/minigames-bau";
 import ServersPage from "./pages/servers";
+import AiAssistant from "./pages/ai-assistant";
+import AiVideos from "./pages/ai-videos";
 import AppLayout from "./components/layout/app-layout";
 import { AuthProvider, useAuth } from "./context/auth-context";
 import { UIConfigProvider } from "./context/ui-config-context";
@@ -238,6 +240,9 @@ function Router() {
             <Route path="/minigames/bau" component={() => <ProtectedRoute component={MinigamesBau} />} />
 
             <Route path="/pricing" component={Pricing} />
+            <Route path="/ai" component={() => <ProtectedRoute component={AiAssistant} />} />
+            <Route path="/ai/assistant" component={() => <ProtectedRoute component={AiAssistant} />} />
+            <Route path="/ai/videos" component={() => <ProtectedRoute component={AiVideos} />} />
             <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
 

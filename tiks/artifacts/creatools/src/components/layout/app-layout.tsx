@@ -7,6 +7,7 @@ import {
   Globe, Gamepad2, Subtitles, Webhook, Radio, Bell, Code2, Tv2, Trophy,
   Monitor, Target, Layers, ChevronLeft, Megaphone, Pin, Info, Sparkles,
   AlertTriangle, CheckCircle2, ExternalLink, Wifi, MessageSquare, Server,
+  Bot, Video,
   LucideProps,
 } from "lucide-react";
 import { SiTiktok } from "react-icons/si";
@@ -34,7 +35,7 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   LayoutDashboard, Activity, Settings, Diamond, Tag, Shield,
   Search, Users, Star, Key, BarChart2, Crown, Zap, Lock,
   Globe, Gamepad2, Subtitles, Webhook, Radio, Bell, Code2, Tv2, Trophy,
-  Monitor, Target, Layers, Sparkles, Server,
+  Monitor, Target, Layers, Sparkles, Server, Bot, Video,
 };
 function NavIcon({ name, className = "w-4 h-4" }: { name: string; className?: string }) {
   const Icon = ICON_MAP[name] ?? LayoutDashboard;
@@ -83,6 +84,14 @@ const DEFAULT_SECTIONS: NavSectionConfig[] = [
       { id: "effect-battle", label: "Effect Battle",  href: "/effect-battle", icon: "Sparkles",matchPrefix: "/effect-battle", visible: true, badge: "PRO", badgeColor: "#f97316" },
       { id: "troll-gift",    label: "Troll Gift",     href: "/troll-gift",    icon: "Zap",     matchPrefix: "/troll-gift",    visible: true, badge: "APP", badgeColor: "#22d3ee" },
       { id: "album",         label: "Álbum",          href: "/album",         icon: "Layers",  matchPrefix: "/album",         visible: true },
+    ],
+  },
+  {
+    id: "ia-section",
+    label: "INTELIGÊNCIA ARTIFICIAL",
+    items: [
+      { id: "ai-assistant", label: "Assistente IA",   href: "/ai/assistant", icon: "Bot",   matchPrefix: "/ai/assistant", visible: true, badge: "NEW", badgeColor: "#a78bfa" },
+      { id: "ai-videos",    label: "Vídeos IA",       href: "/ai/videos",    icon: "Video", matchPrefix: "/ai/videos",    visible: true, badge: "NEW", badgeColor: "#ec4899", requiresPlan: "basic" },
     ],
   },
   {
