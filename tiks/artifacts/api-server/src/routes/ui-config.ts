@@ -4,9 +4,18 @@ import { loadUIConfig, saveUIConfig, getDefaultUIConfig, type UIConfig } from ".
 
 const router: IRouter = Router();
 
-// GET /ui-config — public
+// GET /ui-config — public. Falls back to defaults if DB is unavailable
+// (important for fresh installs where the wizard hasn't configured the DB yet).
 router.get("/ui-config", async (_req, res): Promise<void> => {
-  res.json(await loadUIConfig());
+  try {
+    res.json(await loadUIConfig());
+  } catch (err) {
+    // DB not available — return sensible defaults so the frontend can still render
+    // the installer wizard and other public pages.
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn("[ui-config] DB unavailable, returning defaults:", message);
+    res.json({ ...getDefaultUIConfig(), _dbError: message });
+  }
 });
 
 // PATCH /admin/ui-config

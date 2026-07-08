@@ -252,20 +252,23 @@ backend:
 
   - task: "UI config endpoint - /api/ui-config"
     implemented: true
-    working: false
+    working: true
     file: "/app/tiks/artifacts/api-server/src/routes/ui-config.ts"
     stuck_count: 0
-    priority: "medium"
+    priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "CRITICAL: Endpoint fails when PostgreSQL is not running and returns HTML error page instead of JSON error response. Error: 'Failed query: select ... from ui_config where ui_config.id = $1'. This violates the requirement that 'backend requires the wizard to be functional even when PostgreSQL is NOT running — the endpoints handle DB errors gracefully and return JSON with ok: false messages'. The endpoint should catch the database error and return a JSON response like {ok: false, message: 'Database not available'} instead of crashing with an HTML error page."
+      - working: true
+        agent: "testing"
+        comment: "BUG FIX VERIFIED: Endpoint now returns HTTP 200 with JSON response when PostgreSQL is not running. The fix wraps loadUIConfig() in try/catch block and returns default UI config with _dbError field for diagnostics. Response includes all required fields: navType, primaryColor, secondaryColor, logoText, logoUrl, sidebarSections, updatedAt. Content-Type is correctly set to application/json. No HTML error page is returned. The endpoint gracefully handles DB errors and allows the installer wizard to function without a database connection."
 
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: true
 
 test_plan:
@@ -278,3 +281,5 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "Completed comprehensive testing of the enhanced installer wizard. All 8 steps of the wizard are working correctly. All three routes (/setup, /installer, /install) successfully load the wizard. The UI is polished with dark theme, gradient buttons, and smooth transitions. Database connection testing works and shows appropriate error messages when PostgreSQL is not running. However, found one critical issue: the /api/ui-config endpoint crashes with HTML error page when database is unavailable, instead of returning graceful JSON error response. This should be fixed to match the pattern used in other setup endpoints."
+  - agent: "testing"
+    message: "BUG FIX VERIFICATION COMPLETE: The /api/ui-config endpoint bug has been successfully fixed. The endpoint now returns HTTP 200 with JSON response (including default UI config with _dbError field) when PostgreSQL is not running, instead of crashing with HTML error page. All core setup endpoints tested: /api/ui-config ✅, /api/setup/status ✅, /api/setup/test-db ✅, /api/setup/test-llm ✅. Note: /api/setup/test-api returns ok:true even with invalid API keys (may be expected behavior or requires separate investigation). /api/_proxy/health endpoint does not exist (404)."
