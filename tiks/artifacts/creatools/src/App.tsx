@@ -79,7 +79,27 @@ import { WatchlistProvider } from "./context/watchlist-context";
 import { MaintenanceProvider, useMaintenance } from "./context/maintenance-context";
 import { useEffect } from "react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache "fresh" for 30s — evita refetch imediato ao trocar de página
+      staleTime: 30_000,
+      // Mantém cache em memória por 15 min mesmo sem uso (usuário fora do site)
+      gcTime: 15 * 60_000,
+      // NÃO refetcha ao trocar aba/janela (só se stale)
+      refetchOnWindowFocus: false,
+      // Só refetcha ao remontar se estiver stale
+      refetchOnMount: true,
+      refetchOnReconnect: "always",
+      retry: 1,
+      // Refetch silencioso em background a cada 60s (dados sempre atualizados)
+      refetchInterval: 60_000,
+      refetchIntervalInBackground: true,
+      // Mantém dados anteriores enquanto refetcha (sem "piscar")
+      placeholderData: (previousData: unknown) => previousData,
+    },
+  },
+});
 
 function Spinner() {
   return (
