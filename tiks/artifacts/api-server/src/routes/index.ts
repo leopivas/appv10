@@ -19,6 +19,7 @@ import profileRouter from "./profile";
 import giftsRouter from "./gifts";
 import layoutsRouter from "./layouts";
 import serversRouter from "./servers";
+import authConfigRouter from "./auth-config";
 
 const router: IRouter = Router();
 
@@ -33,6 +34,7 @@ router.use(plansRouter);
 router.use(uiConfigRouter);
 router.use(supportRouter);
 router.use(setupRouter);
+router.use(authConfigRouter);
 router.use(systemRouter);
 router.use(announcementsRouter);
 router.use(landingRouter);

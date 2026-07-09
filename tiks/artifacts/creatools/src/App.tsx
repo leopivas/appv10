@@ -79,7 +79,28 @@ import { WatchlistProvider } from "./context/watchlist-context";
 import { MaintenanceProvider, useMaintenance } from "./context/maintenance-context";
 import { useEffect } from "react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache "fresh" por 5 min — não refetcha ao trocar de página nesse período
+      staleTime: 5 * 60_000,
+      // Mantém cache em memória por 15 min (mesmo com usuário fora do site)
+      gcTime: 15 * 60_000,
+      // NÃO refetcha ao trocar aba/janela
+      refetchOnWindowFocus: false,
+      // NÃO refetcha automaticamente ao remontar (usa cache se ainda fresh)
+      refetchOnMount: false,
+      // Só refetcha se reconectar do offline
+      refetchOnReconnect: "always",
+      retry: 1,
+      // DESATIVADO — refetch em background era o que causava "recarregamento"
+      // Componentes que precisam de tempo real devem opt-in com refetchInterval na useQuery
+      refetchInterval: false,
+      // Mantém dados anteriores enquanto refetcha (sem "piscar" a tela)
+      placeholderData: (previousData: unknown) => previousData,
+    },
+  },
+});
 
 function Spinner() {
   return (

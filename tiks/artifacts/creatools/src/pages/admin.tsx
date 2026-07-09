@@ -3926,9 +3926,231 @@ function SuporteSection() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// AUTENTICAÇÃO SECTION
+// ════════════════════════════════════════════════════════════════════════════
+interface AuthConfigResponse {
+  stackProjectId: string;
+  stackPublishableClientKey: string;
+  stackSecretServerKeyMasked: string | null;
+  stackSecretServerKeySet: boolean;
+  googleEnabled: boolean;
+  googleClientId: string;
+  googleClientSecretMasked: string | null;
+  googleClientSecretSet: boolean;
+  tiktokEnabled: boolean;
+  tiktokClientKey: string;
+  tiktokClientSecretMasked: string | null;
+  tiktokClientSecretSet: boolean;
+  tiktokRedirectUri: string;
+  emailVerificationRequired: boolean;
+  smsVerificationRequired: boolean;
+  allowSignup: boolean;
+  autoApproveNewUsers: boolean;
+  sessionDurationDays: number;
+}
+
+function AutenticacaoSection() {
+  const { token } = useAuth();
+  const { toast } = useToast();
+  const [cfg, setCfg] = useState<AuthConfigResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  // Secret inputs (only sent if user types something new)
+  const [stackSecretInput, setStackSecretInput] = useState("");
+  const [googleSecretInput, setGoogleSecretInput] = useState("");
+  const [tiktokSecretInput, setTiktokSecretInput] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const d = await authFetch("/admin/auth-config", token!) as AuthConfigResponse;
+      setCfg(d);
+    } catch (e) {
+      toast({ title: "Erro ao carregar", description: String(e), variant: "destructive" });
+    } finally { setLoading(false); }
+  }, [token, toast]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  async function save(patch: Partial<AuthConfigResponse> & { stackSecretServerKey?: string; googleClientSecret?: string; tiktokClientSecret?: string }) {
+    setSaving(true);
+    try {
+      await authFetch("/admin/auth-config", token!, { method: "PATCH", body: JSON.stringify(patch), headers: { "Content-Type": "application/json" } });
+      toast({ title: "Salvo", description: "Configuração atualizada" });
+      setStackSecretInput(""); setGoogleSecretInput(""); setTiktokSecretInput("");
+      await load();
+    } catch (e) {
+      toast({ title: "Erro ao salvar", description: String(e), variant: "destructive" });
+    } finally { setSaving(false); }
+  }
+
+  async function testStack() {
+    setTesting(true); setTestResult(null);
+    try {
+      const d = await authFetch("/admin/auth-config/test-stack", token!, { method: "POST" }) as { ok: boolean; message: string };
+      setTestResult(d);
+    } catch (e) {
+      setTestResult({ ok: false, message: String(e) });
+    } finally { setTesting(false); }
+  }
+
+  if (loading || !cfg) return <div className="p-6 text-muted-foreground">Carregando…</div>;
+
+  const inputCls = "w-full px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-white outline-none focus:border-purple-400";
+  const labelCls = "text-xs text-white/50 mb-1 block";
+
+  return (
+    <div className="max-w-4xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white mb-1">Autenticação</h1>
+        <p className="text-sm text-muted-foreground">Configure provedores de login, verificações e sessão. Chaves ficam em <code className="text-purple-300">/opt/creatools/.../data/auth-config.json</code>.</p>
+      </div>
+
+      {/* Stack Auth (Neon) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Lock className="w-5 h-5 text-cyan-400" /> Stack Auth (Neon)</CardTitle>
+          <p className="text-xs text-muted-foreground">Obtenha em: console.neon.tech → seu projeto → Auth → Enable</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label className={labelCls}>STACK_PROJECT_ID</label>
+            <input className={inputCls} value={cfg.stackProjectId} onChange={(e) => setCfg({ ...cfg, stackProjectId: e.target.value })} placeholder="proj_xxx..." />
+          </div>
+          <div>
+            <label className={labelCls}>STACK_PUBLISHABLE_CLIENT_KEY</label>
+            <input className={inputCls} value={cfg.stackPublishableClientKey} onChange={(e) => setCfg({ ...cfg, stackPublishableClientKey: e.target.value })} placeholder="pck_xxx..." />
+          </div>
+          <div>
+            <label className={labelCls}>
+              STACK_SECRET_SERVER_KEY {cfg.stackSecretServerKeySet && <span className="text-green-400">(configurado: {cfg.stackSecretServerKeyMasked})</span>}
+            </label>
+            <input type="password" className={inputCls} value={stackSecretInput} onChange={(e) => setStackSecretInput(e.target.value)} placeholder={cfg.stackSecretServerKeySet ? "•••••• (deixe vazio para manter)" : "ssk_xxx..."} />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => void save({ stackProjectId: cfg.stackProjectId, stackPublishableClientKey: cfg.stackPublishableClientKey, stackSecretServerKey: stackSecretInput || undefined })} disabled={saving}>Salvar</Button>
+            <Button variant="outline" onClick={() => void testStack()} disabled={testing || !cfg.stackProjectId}>{testing ? "Testando…" : "Testar conexão"}</Button>
+          </div>
+          {testResult && (
+            <div className={`text-sm px-3 py-2 rounded-lg ${testResult.ok ? "bg-green-500/10 text-green-300 border border-green-500/20" : "bg-red-500/10 text-red-300 border border-red-500/20"}`}>
+              {testResult.message}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Google OAuth */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2"><Globe className="w-5 h-5 text-blue-400" /> Login com Google</span>
+            <Switch checked={cfg.googleEnabled} onCheckedChange={(v) => void save({ googleEnabled: v })} />
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Crie OAuth Client em console.cloud.google.com → APIs & Services → Credentials</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label className={labelCls}>Google Client ID</label>
+            <input className={inputCls} value={cfg.googleClientId} onChange={(e) => setCfg({ ...cfg, googleClientId: e.target.value })} placeholder="xxx.apps.googleusercontent.com" />
+          </div>
+          <div>
+            <label className={labelCls}>
+              Google Client Secret {cfg.googleClientSecretSet && <span className="text-green-400">(configurado: {cfg.googleClientSecretMasked})</span>}
+            </label>
+            <input type="password" className={inputCls} value={googleSecretInput} onChange={(e) => setGoogleSecretInput(e.target.value)} placeholder={cfg.googleClientSecretSet ? "•••••• (vazio = manter)" : "GOCSPX-..."} />
+          </div>
+          <Button onClick={() => void save({ googleClientId: cfg.googleClientId, googleClientSecret: googleSecretInput || undefined })} disabled={saving}>Salvar Google</Button>
+        </CardContent>
+      </Card>
+
+      {/* TikTok OAuth */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2"><SiTiktok className="w-5 h-5 text-pink-400" /> Login com TikTok</span>
+            <Switch checked={cfg.tiktokEnabled} onCheckedChange={(v) => void save({ tiktokEnabled: v })} />
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Crie app em developers.tiktok.com → Manage apps</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label className={labelCls}>TikTok Client Key</label>
+            <input className={inputCls} value={cfg.tiktokClientKey} onChange={(e) => setCfg({ ...cfg, tiktokClientKey: e.target.value })} placeholder="aw..." />
+          </div>
+          <div>
+            <label className={labelCls}>
+              TikTok Client Secret {cfg.tiktokClientSecretSet && <span className="text-green-400">(configurado: {cfg.tiktokClientSecretMasked})</span>}
+            </label>
+            <input type="password" className={inputCls} value={tiktokSecretInput} onChange={(e) => setTiktokSecretInput(e.target.value)} placeholder={cfg.tiktokClientSecretSet ? "•••••• (vazio = manter)" : "ao..."} />
+          </div>
+          <div>
+            <label className={labelCls}>Redirect URI</label>
+            <input className={inputCls} value={cfg.tiktokRedirectUri} onChange={(e) => setCfg({ ...cfg, tiktokRedirectUri: e.target.value })} placeholder="https://seudominio.com/api/auth/tiktok/callback" />
+          </div>
+          <Button onClick={() => void save({ tiktokClientKey: cfg.tiktokClientKey, tiktokClientSecret: tiktokSecretInput || undefined, tiktokRedirectUri: cfg.tiktokRedirectUri })} disabled={saving}>Salvar TikTok</Button>
+        </CardContent>
+      </Card>
+
+      {/* Verificações */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-yellow-400" /> Verificações</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+            <div>
+              <p className="text-sm font-medium text-white">Verificação de e-mail</p>
+              <p className="text-xs text-muted-foreground">Exigir confirmação por e-mail no cadastro</p>
+            </div>
+            <Switch checked={cfg.emailVerificationRequired} onCheckedChange={(v) => void save({ emailVerificationRequired: v })} />
+          </div>
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 opacity-60">
+            <div>
+              <p className="text-sm font-medium text-white">Verificação por SMS</p>
+              <p className="text-xs text-muted-foreground">Requer provedor SMS (Twilio/SNS) — desativado</p>
+            </div>
+            <Switch checked={cfg.smsVerificationRequired} onCheckedChange={(v) => void save({ smsVerificationRequired: v })} disabled />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Geral */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5 text-purple-400" /> Configurações gerais</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+            <div>
+              <p className="text-sm font-medium text-white">Permitir novos cadastros</p>
+              <p className="text-xs text-muted-foreground">Se desligado, só admins criam usuários</p>
+            </div>
+            <Switch checked={cfg.allowSignup} onCheckedChange={(v) => void save({ allowSignup: v })} />
+          </div>
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+            <div>
+              <p className="text-sm font-medium text-white">Auto-aprovar novos usuários</p>
+              <p className="text-xs text-muted-foreground">Se desligado, admin precisa aprovar cada cadastro</p>
+            </div>
+            <Switch checked={cfg.autoApproveNewUsers} onCheckedChange={(v) => void save({ autoApproveNewUsers: v })} />
+          </div>
+          <div>
+            <label className={labelCls}>Duração da sessão (dias)</label>
+            <input type="number" min="1" max="365" className={inputCls} value={cfg.sessionDurationDays} onChange={(e) => setCfg({ ...cfg, sessionDurationDays: parseInt(e.target.value, 10) || 30 })} onBlur={() => void save({ sessionDurationDays: cfg.sessionDurationDays })} />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // MAIN ADMIN PAGE
 // ════════════════════════════════════════════════════════════════════════════
-type AdminSection = "overview" | "users" | "roles" | "plans" | "announcements" | "content" | "customization" | "landing" | "sistema" | "paginas" | "database" | "support" | "gifts";
+type AdminSection = "overview" | "users" | "roles" | "plans" | "announcements" | "content" | "customization" | "landing" | "sistema" | "paginas" | "database" | "support" | "gifts" | "auth";
 
 const ADMIN_NAV: Array<{ id: AdminSection; label: string; icon: React.ComponentType<{ className?: string }>; badge?: string }> = [
   { id: "overview",      label: "Visão Geral",       icon: LayoutDashboard },
@@ -3943,6 +4165,7 @@ const ADMIN_NAV: Array<{ id: AdminSection; label: string; icon: React.ComponentT
   { id: "landing",       label: "Landing Page",       icon: Globe },
   { id: "gifts",         label: "Gifts TikTok",       icon: Diamond },
   { id: "database",      label: "Banco de Dados",     icon: Database },
+  { id: "auth",          label: "Autenticação",       icon: Lock, badge: "NEW" },
   { id: "sistema",       label: "Sistema",            icon: Server },
 ];
 
@@ -4042,6 +4265,7 @@ export default function Admin() {
         {activeSection === "landing"       && <LandingPageTab allPlans={plans} />}
         {activeSection === "gifts"         && <GiftsSection />}
         {activeSection === "database"      && <BancoDadosSection />}
+        {activeSection === "auth"          && <AutenticacaoSection />}
         {activeSection === "sistema"       && <SistemaSection />}
         {activeSection === "support"       && <SuporteSection />}
       </div>
