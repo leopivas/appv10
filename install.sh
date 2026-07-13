@@ -17,7 +17,7 @@ set -euo pipefail
 
 # ─── Configuração ──────────────────────────────────────────────────────────
 APP_DIR="${APP_DIR:-/opt/creatools}"
-REPO_URL="${REPO_URL:-https://github.com/leopivas/APPFINALV3.git}"
+REPO_URL="${REPO_URL:-https://github.com/leopivas/appv10.git}"
 NODE_VERSION="${NODE_VERSION:-20}"
 DB_NAME="${DB_NAME:-creatools}"
 DB_USER="${DB_USER:-creatools}"
